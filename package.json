@@ -37,7 +37,7 @@
 				{
 					"id": "piton-explorer",
 					"title": "Piton Explorer",
-					"icon": "src/resources/dark/pitons.svg"
+					"icon": "resources/dark/pitons.svg"
 				}
 			]
 		},
@@ -46,11 +46,17 @@
 				{
 					"id": "pitonFiles",
 					"name": "Piton Files",
-					"icon": "src/resources/dark/pitons.svg",
+					"icon": "resources/dark/pitons.svg",
 					"contextualTitle": "Piton Explorer"
 				}
 			]
     },
+    "viewsWelcome": [
+      {
+        "view": "pitonFiles",
+        "contents": "No piton files found [learn more](https://github.com/JeffSallans/piton).\n[Add Piton Test](command:workbench.action.files.newUntitledFile)"
+      }
+    ],
     "grammars": [
       {
         "path": "./syntaxes/injection.json",

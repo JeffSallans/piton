@@ -18,4 +18,8 @@ export interface PitonFile {
     count: number;
     /** Number of records that fail this file's checks */
     errorCount: number;
+    /** The status of the last run: success, failure, norun */
+    result: string;
+    /** Description summary of the run results */
+    resultSummary: string;
 }   

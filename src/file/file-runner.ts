@@ -40,7 +40,10 @@ export async function runFile(file: PitonFile) {
         };
     }
 
+    const checks = filter(file.parts, p => p.type === 'Check');
     file.errorCount = filter(file.parts, p => p.filePartResult?.result === 'Fail').length;
+    file.result = (file.errorCount === 0) ? 'success' : 'failure';
+    file.resultSummary = `${checks.length - file.errorCount}/${checks.length} checks passed for ${file.count} records`;
 
     await sql.closeConnection();
 }

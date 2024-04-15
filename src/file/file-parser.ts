@@ -41,7 +41,9 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
         countQuery,
 
         count: 0,
-        errorCount: 0
+        errorCount: 0,
+        result: 'norun',
+        resultSummary: ''
     };
 }
 

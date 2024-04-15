@@ -33,17 +33,23 @@ export class TestTreeDataProvider implements vscode.TreeDataProvider<PitonTestIt
 		const tests = getFileDictionary();
 		
 		const items = map(values(tests), t => {
-			const absFilePath = `file:${t?.folderPath.replaceAll('\\', '/')}${t?.name}`;
-			let statusIcon = 'O';
-			if (t?.errorCount !== undefined && t?.errorCount > 0) {
-				statusIcon = 'X';
-			}
-			const label = `${statusIcon} ${t?.name}\t${t?.count}`;
-			return new PitonTestItem(label, vscode.TreeItemCollapsibleState.None, {
-				command: 'vscode.open',
-				title: label,
-				arguments: [vscode.Uri.parse(absFilePath)]
-			});
+			// Null check that shouldn't happen
+			if (t === null) { return new PitonTestItem('', '', '', 0, vscode.TreeItemCollapsibleState.None); }
+			
+			const absFilePath = `file:${t.folderPath.replaceAll('\\', '/')}${t.name}`;
+			const label = `${t.name}`;
+			return new PitonTestItem(
+				label,
+				t.result,
+				`${t.result} - ${t.resultSummary}`,
+				t.count,
+				vscode.TreeItemCollapsibleState.None,
+				{
+					command: 'vscode.open',
+					title: label,
+					arguments: [vscode.Uri.parse(absFilePath)]
+				}
+			);
 		});
 		return Promise.resolve(items);
 	}
@@ -53,19 +59,35 @@ export class PitonTestItem extends vscode.TreeItem {
 
 	constructor(
 		public readonly label: string,
+		public readonly result: string,
+		public readonly tooltip: string,
+		public readonly rowCount: number,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);
 
-		this.tooltip = '';
-		this.description = '';
-	}
+		this.tooltip = tooltip;
+		this.description = `${rowCount} records`;
 
-	iconPath = {
-		light: path.join(__filename, '..', '..', 'resources', 'light', 'pitons.svg'),
-		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'pitons.svg')
-	};
+		if (result === 'success') {
+			this.iconPath = {
+				light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pitons-file-success.svg'),
+				dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pitons-file-success.svg')
+			};
+		} else if (result === 'failure') {
+			this.iconPath = {
+				light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pitons-file-failure.svg'),
+				dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pitons-file-failure.svg')
+			};			
+		}
+		else {
+			this.iconPath = {
+				light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pitons-file-norun.svg'),
+				dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pitons-file-norun.svg')
+			};
+		}
+	}
 
 	contextValue = 'dependency';
 }
