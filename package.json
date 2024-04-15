@@ -1,0 +1,94 @@
+{
+  "name": "piton",
+  "displayName": "Piton",
+  "description": "Simple SQL quality checking tool",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.88.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:sql"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "piton.helloWorld",
+        "title": "Piton Hello World"
+      },
+      {
+        "command": "piton.scanDocument",
+        "title": "Piton Parse File"
+      },
+      {
+        "command": "piton.runFile",
+        "title": "Piton Run File"
+      },
+      {
+        "command": "piton.runAll",
+        "title": "Piton Run All Files"
+      }
+    ],
+    "viewsContainers": {
+			"activitybar": [
+				{
+					"id": "piton-explorer",
+					"title": "Piton Explorer",
+					"icon": "src/resources/dark/pitons.svg"
+				}
+			]
+		},
+		"views": {
+			"piton-explorer": [
+				{
+					"id": "pitonFiles",
+					"name": "Piton Files",
+					"icon": "src/resources/dark/pitons.svg",
+					"contextualTitle": "Piton Explorer"
+				}
+			]
+    },
+    "grammars": [
+      {
+        "path": "./syntaxes/injection.json",
+        "scopeName": "piton-comment.injection",
+        "injectTo": [
+          "source.sql"
+        ],
+        "tokenTypes": {
+          "keyword.piton-connectionString": "other"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "18.x",
+    "@types/pg": "^8.11.5",
+    "@types/vscode": "^1.88.0",
+    "@typescript-eslint/eslint-plugin": "^7.4.0",
+    "@typescript-eslint/parser": "^7.4.0",
+    "@vscode/test-cli": "^0.0.8",
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "glob": "^10.3.12",
+    "lodash": "^4.17.21",
+    "pg": "^8.11.5",
+    "vscode-textmate": "^9.0.0"
+  }
+}

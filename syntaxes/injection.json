@@ -1,0 +1,36 @@
+{
+    "scopeName": "piton-comment.injection",
+    "injectionSelector": "L:comment.line.double-dash.sql",
+    "patterns": [
+        {
+            "include": "#piton-connectionString"
+        },
+        {
+            "include": "#piton-sqlDialect"
+        },
+        {
+            "include": "#piton-runSchedule"
+        },
+        {
+            "include": "#piton-check"
+        }
+    ],
+    "repository": {
+        "piton-connectionString": {
+            "match": "pn-connectionString",
+            "name": "keyword.piton-connectionString"
+        },
+        "piton-sqlDialect": {
+            "match": "pn-sqlDialect",
+            "name": "keyword.piton-sqlDialect"
+        },
+        "piton-runSchedule": {
+            "match": "pn-runSchedule",
+            "name": "keyword.piton-runSchedule"
+        },
+        "piton-check": {
+            "match": "pn-check",
+            "name": "keyword.piton-check"
+        }
+    }
+}
