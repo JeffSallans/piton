@@ -1,11 +1,14 @@
 // Render Results
 
 import { Position, Range, TextDocument, TextEditor } from "vscode";
+import * as fs from 'fs';
 import { PitonFile } from "../models/PitonFile";
 import { get, isNull } from "lodash";
+import { json2csv } from "json-2-csv";
 
-    // 1. Update File Content
 export async function updateFile(editor: TextEditor, file: PitonFile) {
+    /*
+    // 1. Update File Content
     const resultRegex = /\s*?\-\-\s+?pn\-result\s(.*?)\s*?\r?\n/gi;
     const word = editor.document.getWordRangeAtPosition(new Position(0, 0), resultRegex) || new Range(0, 0, 0, 0);
 
@@ -14,12 +17,24 @@ export async function updateFile(editor: TextEditor, file: PitonFile) {
     editor.edit(editBuilder => {
         editBuilder.replace(word, get(file, 'parts[1].filePartResult?.result', 'Fail'));
     });
-}
-    /*
-    		editor.edit(editBuilder => {
-				editBuilder.replace(selection, reversed);
-			});
     */
+
     // 2. Update File Explorer
+    // Done
+
     // 3. Red Underline Failed comments
+    // TODO
+
     // 4. Create Exception file
+    for (const p of file.parts) {
+        if (p.filePartResult !== null) {
+            createExceptionFile(`${file.folderPath}${file.name}.${p.name || 'check'}${p.order}.csv`, p.filePartResult.resultData);
+        }
+    }
+}
+
+
+function createExceptionFile(filePath: string, data: object[]) {
+    const csvString = json2csv(data, {});
+    fs.writeFileSync(filePath, csvString);
+}

@@ -1,4 +1,4 @@
-import { TextDocument, TextEditor } from "vscode";
+import { TextDocument, TextEditor, window, } from "vscode";
 import * as fs from 'fs';
 import { PitonFile } from "../models/PitonFile";
 import { getFile, getFileFromDoc } from "./file-parser";
@@ -7,14 +7,41 @@ import { updateFile } from "./file-render";
 import { Dictionary, forEach, keyBy, map, values } from "lodash";
 import { glob } from "glob";
 import path from "path";
+import { PitonFilePartResult } from "../models/PitonFilePartResult";
 
+/** The parsed files data */
 let fileData: Dictionary<PitonFile | null>;
 
+/** A copy of the active file parsing */
 let activeFileData: PitonFile;
+
+/** The results from the file runs */
+let fileResultData: Dictionary<PitonFilePartResult[]>;
 
 /** Return all piton files keyed by file name */
 export function getFileDictionary(): Dictionary<PitonFile | null> {
     return fileData;
+}
+
+/** Return all piton files results keyed by file name */
+export function getFileResultDictionary(): Dictionary<PitonFilePartResult[]> {
+    return fileResultData;
+}
+
+/** Return the piton file for the give file name */
+export function getFileByName(fileAndFolderName: string): PitonFile | null {
+    const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
+    const results = fileNameRegex.exec(fileAndFolderName) || [];
+    const fileName = results[3];
+    return fileData[fileName];
+}
+
+/** Return the piton result file for the give file name */
+export function getFileResultByName(fileAndFolderName: string): PitonFilePartResult[] {
+    const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
+    const results = fileNameRegex.exec(fileAndFolderName) || [];
+    const fileName = results[3];
+    return fileResultData[fileName];
 }
 
 /** Return the active piton file */
@@ -33,11 +60,8 @@ export function parseActiveFile(file: TextDocument) {
 
 /** Run */
 export async function runActiveFile() {
-    // * Run File.CountQuery
     await runFile(activeFileData);
     fileData[activeFileData.name] = activeFileData;
-
-    // * Run FilePart array on SanitizedQuery
 }
 
 
@@ -63,7 +87,22 @@ export function confirmSnapshot() {
 
 /** Parse */
 export async function parseAllFiles(workspaceRoot: string) {
+    const oldfileData = values(fileData);
     fileData = await getTests(workspaceRoot);
+    if (fileData === null) { return; }
+
+    for (const f of oldfileData) {
+        // Ignore nulls
+        if (f === null) { continue; }
+
+        // Keep result data on updates
+        const file = fileData[f.name]; 
+        if (file !== null && fileData[f.name]?.parts) {
+            for (const p of f.parts) {
+                file.parts[p.order].filePartResult = p.filePartResult;
+            }
+        }
+    }
 }
 
 /** Parse */
@@ -71,7 +110,12 @@ export async function runAllFiles(workspaceRoot: string) {
     fileData = await getTests(workspaceRoot);
     for(const file of values(fileData)) {
         if (file === null) { continue; }
-        await runFile(file);
+        try {
+            await runFile(file);
+        }
+        catch (e) {
+            window.showErrorMessage(`${e}`);
+        }
     }
 }
 

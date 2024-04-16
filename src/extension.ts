@@ -6,6 +6,7 @@ import { map } from 'lodash';
 import { languages } from 'vscode';
 import { PitonCodeLensProvider } from './codelens/runner-codelens';
 import { TestTreeDataProvider } from './sidebar/TestTreeDataProvider';
+import { PitonResultCodeLensProvider } from './codelens/results-codelens';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -83,6 +84,16 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(runDisposable);
 
+	const parseAllDisposable = vscode.commands.registerCommand('piton.parseAll', async () => {
+		// Confirm Exceptions
+		await parseAllFiles(rootPath);
+
+		// Render
+		renderResults(vscode.window.activeTextEditor);
+		testTreeDataProvider.refresh();
+	});
+	context.subscriptions.push(parseAllDisposable);
+
 	const runAllDisposable = vscode.commands.registerCommand('piton.runAll', async () => {
 		// Confirm Exceptions
 		await runAllFiles(rootPath);
@@ -90,7 +101,6 @@ export function activate(context: vscode.ExtensionContext) {
 		// Render
 		renderResults(vscode.window.activeTextEditor);
 		testTreeDataProvider.refresh();
-
 	});
 	context.subscriptions.push(runAllDisposable);
 
@@ -125,6 +135,13 @@ export function activate(context: vscode.ExtensionContext) {
 		new PitonCodeLensProvider()
 	);
 	context.subscriptions.push(codeLensProviderDisposable);
+
+	// Register our CodeLens result provider
+	const codeLensResultProviderDisposable = languages.registerCodeLensProvider(
+		docSelector,
+		new PitonResultCodeLensProvider()
+	);
+	context.subscriptions.push(codeLensResultProviderDisposable);
 }
 
 // This method is called when your extension is deactivated

@@ -29,27 +29,33 @@
       },
       {
         "command": "piton.runAll",
-        "title": "Piton Run All Files"
+        "title": "Piton Run All Files",
+        "icon": "$(play)"
+      },
+      {
+        "command": "piton.parseAll",
+        "title": "Refresh",
+        "icon": "$(refresh)"
       }
     ],
     "viewsContainers": {
-			"activitybar": [
-				{
-					"id": "piton-explorer",
-					"title": "Piton Explorer",
-					"icon": "resources/dark/pitons.svg"
-				}
-			]
-		},
-		"views": {
-			"piton-explorer": [
-				{
-					"id": "pitonFiles",
-					"name": "Piton Files",
-					"icon": "resources/dark/pitons.svg",
-					"contextualTitle": "Piton Explorer"
-				}
-			]
+      "activitybar": [
+        {
+          "id": "piton-explorer",
+          "title": "Piton Explorer",
+          "icon": "resources/dark/pitons.svg"
+        }
+      ]
+    },
+    "views": {
+      "piton-explorer": [
+        {
+          "id": "pitonFiles",
+          "name": "Piton Files",
+          "icon": "resources/dark/pitons.svg",
+          "contextualTitle": "Piton Explorer"
+        }
+      ]
     },
     "viewsWelcome": [
       {
@@ -57,6 +63,20 @@
         "contents": "No piton files found [learn more](https://github.com/JeffSallans/piton).\n[Add Piton Test](command:workbench.action.files.newUntitledFile)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "piton.runAll",
+          "when": "view == pitonFiles",
+          "group": "navigation"
+        },
+        {
+          "command": "piton.parseAll",
+          "when": "view == pitonFiles",
+          "group": "navigation"
+        }
+      ]
+    },
     "grammars": [
       {
         "path": "./syntaxes/injection.json",
@@ -93,6 +113,7 @@
   },
   "dependencies": {
     "glob": "^10.3.12",
+    "json-2-csv": "^5.5.1",
     "lodash": "^4.17.21",
     "pg": "^8.11.5",
     "vscode-textmate": "^9.0.0"

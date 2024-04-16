@@ -1,3 +1,4 @@
+import { Range } from "vscode";
 import { PitonFilePartResult } from "./PitonFilePartResult";
 
 /** Contains details of part of the file */
@@ -14,6 +15,8 @@ export interface PitonFilePart {
     sanitizedQuery: string;
     filePartResult: PitonFilePartResult | null;
     order: number;
+    /** The start of the part */
+    range: Range;
 
     /** Check params */
 

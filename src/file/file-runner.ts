@@ -2,11 +2,12 @@ import { filter, map, some } from "lodash";
 import { PitonFile } from "../models/PitonFile";
 import { SqlDialectAdapter } from "../models/SqlDialectAdapter";
 import sql from '../sql-dialects/postgres';
+import { PitonFilePartResult } from "../models/PitonFilePartResult";
 
 /**
  * 
  */
-export async function runFile(file: PitonFile) {
+export async function runFile(file: PitonFile): PitonFilePartResult[] {
     //const sql: SqlDialectAdapter = require(`../sql-dialects/${file.sqlDialect}.ts`);
 
     await sql.setupConnection(file.connectionString);
@@ -42,10 +43,12 @@ export async function runFile(file: PitonFile) {
 
     const checks = filter(file.parts, p => p.type === 'Check');
     file.errorCount = filter(file.parts, p => p.filePartResult?.result === 'Fail').length;
-    file.result = (file.errorCount === 0) ? 'success' : 'failure';
+    file.result = (file.errorCount === 0) ? 'Pass' : 'Fail';
     file.resultSummary = `${checks.length - file.errorCount}/${checks.length} checks passed for ${file.count} records`;
 
     await sql.closeConnection();
+
+    return map(file.parts, p => p.filePartResult).filter(res => res !== null);
 }
 
 

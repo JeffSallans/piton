@@ -70,12 +70,12 @@ export class PitonTestItem extends vscode.TreeItem {
 		this.tooltip = tooltip;
 		this.description = `${rowCount} records`;
 
-		if (result === 'success') {
+		if (result === 'Pass') {
 			this.iconPath = {
 				light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pitons-file-success.svg'),
 				dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pitons-file-success.svg')
 			};
-		} else if (result === 'failure') {
+		} else if (result === 'Fail') {
 			this.iconPath = {
 				light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pitons-file-failure.svg'),
 				dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pitons-file-failure.svg')

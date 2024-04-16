@@ -1,7 +1,7 @@
-import { TextDocument } from "vscode";
+import { Range, TextDocument } from "vscode";
 import { PitonFile } from "../models/PitonFile";
 import { PitonFilePart } from "../models/PitonFilePart";
-import { map } from 'lodash';
+import { map, first } from 'lodash';
 
 export function getFileFromDoc(file: TextDocument): PitonFile {
     const text = file.getText();
@@ -27,7 +27,7 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
     // File parts
     const fileBlocksByTokens = getFileSplitByPitonComment(text);
     const fileParts = map(fileBlocksByTokens, (block, index) => {
-        return parsePitonComment(block, index);
+        return parsePitonComment(block, index, text);
     });
 
     return {
@@ -42,7 +42,7 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
 
         count: 0,
         errorCount: 0,
-        result: 'norun',
+        result: 'Ready',
         resultSummary: ''
     };
 }
@@ -54,7 +54,7 @@ function getFileSplitByPitonComment(file: string): string[] {
 }
 
 /** Takes a comment and sql underneath and pulls out query data */
-function parsePitonComment(filePart: string, order: number): PitonFilePart {
+function parsePitonComment(filePart: string, order: number, file: string): PitonFilePart {
     const nameRegex = /\s*?\-\-\s+?pn\-name\s(.*?)\s*?\r?\n/gi;
     const name = (nameRegex.exec(filePart) || [])[1];
     const checkRegex = /\s*?\-\-\s+?pn\-check\s(.*?)\s*?\r?\n/gi;
@@ -68,9 +68,13 @@ function parsePitonComment(filePart: string, order: number): PitonFilePart {
 
     const sanitizedQuery = parseCheckQuery(filePart);
 
+    const checkNoNewlineRegex = /\s*?\-\-\s+?pn\-check/gi;
+    const line = (getLineNumber(file, checkNoNewlineRegex)[order - 1] || { number: 0 })?.number;
+
     return {
         rawText: filePart,
         order,
+        range: new Range(line, 0, line, 0),
         name,
         type: (isTypeCheck) ? 'Check' : 'Other',
         expect,
@@ -85,7 +89,7 @@ function parsePitonComment(filePart: string, order: number): PitonFilePart {
  * Returns the SQL query 
  */
 function parseCountQuery(filePart: string): string {
-    const countQueryRegex = /\s*?\-\-\s+?pn\-count.*?\r?\n(?:\-\-[\w\W]*?\r?\n)*?\s*?(SELECT[\w\W]+?)\r?\n(?:--|\s+?)/gi;
+    const countQueryRegex = /\s*?\-\-\s+?pn\-count.*?\r?\n(?:\-\-[\w\W]*?\r?\n)*?\s*?((SELECT|WITH)[\w\W]+?)\r?\n(?:--|\s+?)/gi;
     const exec = countQueryRegex.exec(filePart) || [];
     const query = exec[1];
     return query;
@@ -95,8 +99,20 @@ function parseCountQuery(filePart: string): string {
  * Returns the SQL query 
  */
 function parseCheckQuery(filePart: string): string {
-    const countQueryRegex = /\s*?\-\-\s+?pn\-check.*?\r?\n(?:\-\-[\w\W]*?\r?\n)\s*?(SELECT[\w\W]+?)\r?\n(?:--|\s+?)/gi;
+    const countQueryRegex = /\s*?\-\-\s+?pn\-check.*?\r?\n(?:\-\-[\w\W]*?\r?\n)\s*?((SELECT|WITH)[\w\W]+?)\r?\n(?:--|\s+?)/gi;
     const exec = countQueryRegex.exec(filePart) || [];
     const query = exec[1];
     return query;
+}
+
+function getLineNumber(str: string, re: RegExp) {
+    return str.split(/(\r?\n)/).map(function (line, i) {
+        if (re.test(line)) {
+            return {
+                line: line,
+                number: i + 1,
+                match: (line.match(re) || [])[0]
+            };
+        }
+    }).filter(Boolean);
 }
