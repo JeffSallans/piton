@@ -5,8 +5,9 @@ import * as fs from 'fs';
 import { PitonFile } from "../models/PitonFile";
 import { get, isNull } from "lodash";
 import { json2csv } from "json-2-csv";
+import { PitonFileResult } from "../models/PitonFileResult";
 
-export async function updateFile(editor: TextEditor, file: PitonFile) {
+export async function updateFile(editor: TextEditor, file: PitonFile, fileResult: PitonFileResult) {
     /*
     // 1. Update File Content
     const resultRegex = /\s*?\-\-\s+?pn\-result\s(.*?)\s*?\r?\n/gi;
@@ -27,14 +28,15 @@ export async function updateFile(editor: TextEditor, file: PitonFile) {
 
     // 4. Create Exception file
     for (const p of file.parts) {
-        if (p.filePartResult !== null) {
-            createExceptionFile(`${file.folderPath}${file.name}.${p.name || 'check'}${p.order}.csv`, p.filePartResult.resultData);
+        const result = fileResult.filePartResults[p.order];
+        if (result !== undefined) {
+            createCSVFile(`${file.folderPath}${file.name}.${p.name || 'check'}${p.order}.csv`, result.resultData);
         }
     }
 }
 
 
-function createExceptionFile(filePath: string, data: object[]) {
+function createCSVFile(filePath: string, data: object[]) {
     const csvString = json2csv(data, {});
     fs.writeFileSync(filePath, csvString);
 }

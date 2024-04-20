@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { confirmExceptions, confirmSnapshot, getActiveFile, getTests, parseActiveFile, parseAllFiles, renderResults, runActiveFile, runAllFiles } from './file/file';
+import { confirmExceptions, confirmSnapshot, getActiveFile, getFileResultByName, getTests, parseActiveFile, parseAllFiles, renderResults, runActiveFile, runAllFiles } from './file/file';
 import { map } from 'lodash';
 import { languages } from 'vscode';
 import { PitonCodeLensProvider } from './codelens/runner-codelens';
@@ -73,10 +73,13 @@ export function activate(context: vscode.ExtensionContext) {
 		// RUN
 		await runActiveFile();
 		const parsedData = getActiveFile();
-		console.log(`${parsedData.name}: count ${parsedData.count}`);
-		map(parsedData.parts, part => {
-			console.log(`${part.order}: result ${part.filePartResult?.result} resultData ${part.filePartResult?.resultData.toString()}`);
-		});
+		const parsedResult = getFileResultByName(parsedData.name);
+		if (parsedResult !== null) {
+			console.log(`${parsedData.name}: count ${parsedResult.count}`);
+			map(parsedResult.filePartResults, partResult => {
+				console.log(`${partResult.parsedPart.order}: result ${partResult.result} resultData ${partResult.resultData.toString()}`);
+			});
+		}
 
 		// Render
 		renderResults(vscode.window.activeTextEditor);

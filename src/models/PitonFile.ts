@@ -11,15 +11,4 @@ export interface PitonFile {
     runScheduleCron: string;
     countQuery: string;
     parts: Array<PitonFilePart>;   
-
-    // Result Params
-
-    /** Number of records this file tests */
-    count: number;
-    /** Number of records that fail this file's checks */
-    errorCount: number;
-    /** The status of the last run: success, failure, norun */
-    result: string;
-    /** Description summary of the run results */
-    resultSummary: string;
 }   

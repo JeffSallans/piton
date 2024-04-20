@@ -13,7 +13,6 @@ export interface PitonFilePart {
     type: string;
     rawText: string;
     sanitizedQuery: string;
-    filePartResult: PitonFilePartResult | null;
     order: number;
     /** The start of the part */
     range: Range;

@@ -1,17 +1,17 @@
 import { CodeLens, CodeLensProvider, Command, Position, Range, TextDocument } from "vscode";
-import { getFileByName } from "../file/file";
+import { getFileByName, getFileResultByName } from "../file/file";
 import { filter, map } from "lodash";
 
 export class PitonResultCodeLensProvider implements CodeLensProvider {
     async provideCodeLenses(document: TextDocument): Promise<CodeLens[]> {
-      const pitonFile = getFileByName(document.fileName);
+      const pitonResultFile = getFileResultByName(document.fileName);
 
-      if (pitonFile === null) {return [];}
+      if (pitonResultFile === null) {return [];}
 
-      const codeLens = filter(pitonFile.parts, p => p.filePartResult !== null).map(p => 
-        new CodeLens(p.range, {
+      const codeLens = map(pitonResultFile.filePartResults, p => 
+        new CodeLens(p.parsedPart.range, {
             command: '',
-            title: `${p.filePartResult?.result} - ${p.filePartResult?.resultMessage} on ${p.filePartResult?.lastRun}`
+            title: `${p.result} - ${p.resultMessage} on ${p.lastRun}`
           })
       );
   

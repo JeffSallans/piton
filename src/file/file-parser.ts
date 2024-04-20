@@ -39,11 +39,6 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
         parts: fileParts,
 
         countQuery,
-
-        count: 0,
-        errorCount: 0,
-        result: 'Ready',
-        resultSummary: ''
     };
 }
 
@@ -81,7 +76,6 @@ function parsePitonComment(filePart: string, order: number, file: string): Piton
         expectColumn,
         expectColumnValue,
         sanitizedQuery,
-        filePartResult: null
     };
 }
 

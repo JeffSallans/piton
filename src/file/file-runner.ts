@@ -3,22 +3,22 @@ import { PitonFile } from "../models/PitonFile";
 import { SqlDialectAdapter } from "../models/SqlDialectAdapter";
 import sql from '../sql-dialects/postgres';
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
+import { PitonFileResult } from "../models/PitonFileResult";
 
 /**
- * 
+ * Execute the file and return the result
  */
-export async function runFile(file: PitonFile): PitonFilePartResult[] {
+export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     //const sql: SqlDialectAdapter = require(`../sql-dialects/${file.sqlDialect}.ts`);
 
     await sql.setupConnection(file.connectionString);
 
     // Run count query
-    file.count = await sql.countSQL(file.countQuery) || 0;
+    const count = await sql.countSQL(file.countQuery) || 0;
 
     // Run part query
-    let index = -1;
+    let filePartResults: PitonFilePartResult[] = [];
     for (const part of file.parts) {
-        index++;
 
         // Only run Check queries
         if (part.type !== 'Check') { continue; }
@@ -28,8 +28,9 @@ export async function runFile(file: PitonFile): PitonFilePartResult[] {
         if (part.expect === 'no_results') {
             result = (resultData.length === 0) ? 'Pass' : 'Fail';
         }
-        file.parts[index].filePartResult = {
+        filePartResults.push({
             type: part.type,
+            parsedPart: part,
             queryThatRan: part.sanitizedQuery,
             lastRun: Date.now().toString(),
             result,
@@ -38,17 +39,26 @@ export async function runFile(file: PitonFile): PitonFilePartResult[] {
             exceptions: '',
             allExceptions: [],
             confirmedExceptions: []
-        };
+        });
     }
 
     const checks = filter(file.parts, p => p.type === 'Check');
-    file.errorCount = filter(file.parts, p => p.filePartResult?.result === 'Fail').length;
-    file.result = (file.errorCount === 0) ? 'Pass' : 'Fail';
-    file.resultSummary = `${checks.length - file.errorCount}/${checks.length} checks passed for ${file.count} records`;
+    const errorCount = filter(filePartResults, p => p.result === 'Fail').length;
+    const result = (errorCount === 0) ? 'Pass' : 'Fail';
+    const resultSummary = `${checks.length - errorCount}/${checks.length} checks passed for ${count} records`;
 
     await sql.closeConnection();
 
-    return map(file.parts, p => p.filePartResult).filter(res => res !== null);
+    const fileResult: PitonFileResult = {
+        parsedFile: file,
+        count,
+        errorCount,
+        result,
+        resultSummary,
+        filePartResults
+    };
+
+    return fileResult;
 }
 
 

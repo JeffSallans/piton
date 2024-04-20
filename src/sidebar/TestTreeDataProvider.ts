@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getFileDictionary, getTests } from '../file/file';
+import { getFileDictionary, getFileResultByName, getFileResultDictionary, getTests } from '../file/file';
 import { map, values } from 'lodash';
 
 export class TestTreeDataProvider implements vscode.TreeDataProvider<PitonTestItem> {
@@ -36,13 +36,15 @@ export class TestTreeDataProvider implements vscode.TreeDataProvider<PitonTestIt
 			// Null check that shouldn't happen
 			if (t === null) { return new PitonTestItem('', '', '', 0, vscode.TreeItemCollapsibleState.None); }
 			
+			const result = getFileResultByName(t.name);
+
 			const absFilePath = `file:${t.folderPath.replaceAll('\\', '/')}${t.name}`;
 			const label = `${t.name}`;
 			return new PitonTestItem(
 				label,
-				t.result,
-				`${t.result} - ${t.resultSummary}`,
-				t.count,
+				result?.result || 'No Run',
+				`${result?.result || 'No Run'} - ${result?.resultSummary || ''}`,
+				result?.count || 0,
 				vscode.TreeItemCollapsibleState.None,
 				{
 					command: 'vscode.open',

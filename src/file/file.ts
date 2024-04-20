@@ -8,6 +8,7 @@ import { Dictionary, forEach, keyBy, map, values } from "lodash";
 import { glob } from "glob";
 import path from "path";
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
+import { PitonFileResult } from "../models/PitonFileResult";
 
 /** The parsed files data */
 let fileData: Dictionary<PitonFile | null>;
@@ -16,7 +17,7 @@ let fileData: Dictionary<PitonFile | null>;
 let activeFileData: PitonFile;
 
 /** The results from the file runs */
-let fileResultData: Dictionary<PitonFilePartResult[]>;
+let fileResultData: Dictionary<PitonFileResult> = {};
 
 /** Return all piton files keyed by file name */
 export function getFileDictionary(): Dictionary<PitonFile | null> {
@@ -24,24 +25,31 @@ export function getFileDictionary(): Dictionary<PitonFile | null> {
 }
 
 /** Return all piton files results keyed by file name */
-export function getFileResultDictionary(): Dictionary<PitonFilePartResult[]> {
+export function getFileResultDictionary(): Dictionary<PitonFileResult> {
     return fileResultData;
 }
 
+
 /** Return the piton file for the give file name */
 export function getFileByName(fileAndFolderName: string): PitonFile | null {
-    const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
+    const fileNameRegex = /^(.*?)(\/|\\)?([^\\\/]+?\.piton\.sql)/gi;
     const results = fileNameRegex.exec(fileAndFolderName) || [];
     const fileName = results[3];
     return fileData[fileName];
 }
 
 /** Return the piton result file for the give file name */
-export function getFileResultByName(fileAndFolderName: string): PitonFilePartResult[] {
-    const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
+export function getFileResultByName(fileAndFolderName: string): PitonFileResult | null {
+    const fileNameRegex = /^(.*?)(\/|\\)?([^\\\/]+?\.piton\.sql)/gi;
     const results = fileNameRegex.exec(fileAndFolderName) || [];
     const fileName = results[3];
-    return fileResultData[fileName];
+    if (fileResultData === undefined) { return null; }
+    return fileResultData[fileName] || null;
+}
+
+/** Return the piton result file for the give file name */
+export function getResultSummary() {
+
 }
 
 /** Return the active piton file */
@@ -60,8 +68,9 @@ export function parseActiveFile(file: TextDocument) {
 
 /** Run */
 export async function runActiveFile() {
-    await runFile(activeFileData);
+    const result = await runFile(activeFileData);
     fileData[activeFileData.name] = activeFileData;
+    fileResultData[activeFileData.name] = result;
 }
 
 
@@ -69,7 +78,12 @@ export async function runActiveFile() {
 export async function renderResults(editor: TextEditor | undefined) {
     if (editor === undefined) { return; }
     // 1. Update File Content
-    await updateFile(editor, activeFileData);
+    const files = values(fileResultData);
+
+    for (const f of files) {
+        await updateFile(editor, f.parsedFile, f);
+    }
+
     // 2. Update File Explorer
     // 3. Red Underline Failed comments
     // 4. Create Exception file
@@ -89,20 +103,6 @@ export function confirmSnapshot() {
 export async function parseAllFiles(workspaceRoot: string) {
     const oldfileData = values(fileData);
     fileData = await getTests(workspaceRoot);
-    if (fileData === null) { return; }
-
-    for (const f of oldfileData) {
-        // Ignore nulls
-        if (f === null) { continue; }
-
-        // Keep result data on updates
-        const file = fileData[f.name]; 
-        if (file !== null && fileData[f.name]?.parts) {
-            for (const p of f.parts) {
-                file.parts[p.order].filePartResult = p.filePartResult;
-            }
-        }
-    }
 }
 
 /** Parse */
@@ -111,7 +111,7 @@ export async function runAllFiles(workspaceRoot: string) {
     for(const file of values(fileData)) {
         if (file === null) { continue; }
         try {
-            await runFile(file);
+            fileResultData[file.name] = await runFile(file);
         }
         catch (e) {
             window.showErrorMessage(`${e}`);
