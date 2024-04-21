@@ -39,7 +39,9 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 
 	const fileContentsDisposable = vscode.commands.registerCommand('piton.scanDocument', function () {
-        // Get the active text editor
+		vscode.window.showInformationMessage('Parsing file');
+
+		// Get the active text editor
         const editor = vscode.window.activeTextEditor;
 
         if (editor) {
@@ -61,33 +63,52 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 	const runDisposable = vscode.commands.registerCommand('piton.runFile', async () => {
-		const editor = vscode.window.activeTextEditor;
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			cancellable: false,
+			title: 'Running Piton File'
+		}, async (progress) => {
+			
+			progress.report({  increment: 0 });
 
-        if (editor) {
-            let document = editor.document;
+			const editor = vscode.window.activeTextEditor;
 
-			// PARSE
-			parseActiveFile(document);
-		}
+			if (editor) {
+				let document = editor.document;
 
-		// RUN
-		await runActiveFile();
-		const parsedData = getActiveFile();
-		const parsedResult = getFileResultByName(parsedData.name);
-		if (parsedResult !== null) {
-			console.log(`${parsedData.name}: count ${parsedResult.count}`);
-			map(parsedResult.filePartResults, partResult => {
-				console.log(`${partResult.parsedPart.order}: result ${partResult.result} resultData ${partResult.resultData.toString()}`);
-			});
-		}
+				// PARSE
+				parseActiveFile(document);
+			}
 
-		// Render
-		renderResults(vscode.window.activeTextEditor);
-		testTreeDataProvider.refresh();
+			progress.report({ increment: 20 });
+
+			// RUN
+			await runActiveFile();
+			const parsedData = getActiveFile();
+			const parsedResult = getFileResultByName(parsedData.name);
+			if (parsedResult !== null) {
+				console.log(`${parsedData.name}: count ${parsedResult.count}`);
+				map(parsedResult.filePartResults, partResult => {
+					console.log(`${partResult.parsedPart.order}: result ${partResult.result} resultData ${partResult.resultData.toString()}`);
+				});
+			}
+
+			progress.report({ increment: 80 });
+
+			// Render
+			renderResults(vscode.window.activeTextEditor);
+			testTreeDataProvider.refresh();
+		
+			await Promise.resolve();
+		
+			progress.report({ increment: 100 });
+		});
 	});
 	context.subscriptions.push(runDisposable);
 
 	const parseAllDisposable = vscode.commands.registerCommand('piton.parseAll', async () => {
+		vscode.window.showInformationMessage('Parsing all files');
+
 		// Confirm Exceptions
 		await parseAllFiles(rootPath);
 
@@ -98,12 +119,25 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(parseAllDisposable);
 
 	const runAllDisposable = vscode.commands.registerCommand('piton.runAll', async () => {
-		// Confirm Exceptions
-		await runAllFiles(rootPath);
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			cancellable: false,
+			title: 'Running Piton File'
+		}, async (progress) => {
+			
+			progress.report({  increment: 0 });
+		
+			// Confirm Exceptions
+			await runAllFiles(rootPath, progress);
 
-		// Render
-		renderResults(vscode.window.activeTextEditor);
-		testTreeDataProvider.refresh();
+			// Render
+			renderResults(vscode.window.activeTextEditor);
+			testTreeDataProvider.refresh();
+
+			await Promise.resolve();
+		
+			progress.report({ increment: 100 });
+		});
 	});
 	context.subscriptions.push(runAllDisposable);
 
@@ -133,13 +167,12 @@ export function activate(context: vscode.ExtensionContext) {
 	};
 
 	// Register our CodeLens provider
-	/*
 	const codeLensProviderDisposable = languages.registerCodeLensProvider(
 		docSelector,
 		new PitonCodeLensProvider()
 	);
 	context.subscriptions.push(codeLensProviderDisposable);
-*/
+
 	// Register our CodeLens result provider
 	const codeLensResultProviderDisposable = languages.registerCodeLensProvider(
 		docSelector,

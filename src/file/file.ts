@@ -1,10 +1,10 @@
-import { TextDocument, TextEditor, window, } from "vscode";
+import { Progress, TextDocument, TextEditor, window, } from "vscode";
 import * as fs from 'fs';
 import { PitonFile } from "../models/PitonFile";
 import { getFile, getFileFromDoc } from "./file-parser";
 import { runFile } from "./file-runner";
 import { updateFile } from "./file-render";
-import { Dictionary, forEach, keyBy, map, values } from "lodash";
+import { Dictionary, ceil, floor, forEach, keyBy, map, values } from "lodash";
 import { glob } from "glob";
 import path from "path";
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
@@ -106,12 +106,16 @@ export async function parseAllFiles(workspaceRoot: string) {
 }
 
 /** Parse */
-export async function runAllFiles(workspaceRoot: string) {
+export async function runAllFiles(workspaceRoot: string, progress: Progress<{message?:string, increment?:number}>) {
     fileData = await getTests(workspaceRoot);
+    const numberOfFiles = values(fileData).length;
+    let index = 0;
     for(const file of values(fileData)) {
+        index++;
         if (file === null) { continue; }
         try {
             fileResultData[file.name] = await runFile(file);
+            progress.report({  increment: floor((index / numberOfFiles) * 100) });
         }
         catch (e) {
             window.showErrorMessage(`${e}`);

@@ -104,7 +104,7 @@ function getLineNumber(str: string, re: RegExp) {
         if (re.test(line)) {
             return {
                 line: line,
-                number: i + 1,
+                number: i,
                 match: (line.match(re) || [])[0]
             };
         }
