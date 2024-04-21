@@ -4,6 +4,7 @@ import { SqlDialectAdapter } from "../models/SqlDialectAdapter";
 import sql from '../sql-dialects/postgres';
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
+import dayjs from "dayjs";
 
 /**
  * Execute the file and return the result
@@ -32,7 +33,7 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
             type: part.type,
             parsedPart: part,
             queryThatRan: part.sanitizedQuery,
-            lastRun: Date.now().toString(),
+            lastRun: dayjs(),
             result,
             resultData,
             resultMessage: '',

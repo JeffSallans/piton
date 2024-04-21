@@ -1,3 +1,4 @@
+import { Dayjs } from "dayjs";
 import { PitonFilePart } from "./PitonFilePart";
 
 /** Contains the result of running PitonFilePart */
@@ -12,7 +13,7 @@ export interface PitonFilePartResult {
     /** Example: 10/30 */
     exceptions: string;
     
-    lastRun: string;
+    lastRun: Dayjs;
  
     resultData: object[];
     confirmedExceptions: object[];

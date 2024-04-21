@@ -100,7 +100,7 @@ function parseCheckQuery(filePart: string): string {
 }
 
 function getLineNumber(str: string, re: RegExp) {
-    return str.split(/(\r?\n)/).map(function (line, i) {
+    return str.split(/\n/).map(function (line, i) {
         if (re.test(line)) {
             return {
                 line: line,

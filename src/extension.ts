@@ -133,12 +133,13 @@ export function activate(context: vscode.ExtensionContext) {
 	};
 
 	// Register our CodeLens provider
+	/*
 	const codeLensProviderDisposable = languages.registerCodeLensProvider(
 		docSelector,
 		new PitonCodeLensProvider()
 	);
 	context.subscriptions.push(codeLensProviderDisposable);
-
+*/
 	// Register our CodeLens result provider
 	const codeLensResultProviderDisposable = languages.registerCodeLensProvider(
 		docSelector,

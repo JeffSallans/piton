@@ -1,6 +1,7 @@
 import { CodeLens, CodeLensProvider, Command, Position, Range, TextDocument } from "vscode";
 import { getFileByName, getFileResultByName } from "../file/file";
 import { filter, map } from "lodash";
+import dayjs from "dayjs";
 
 export class PitonResultCodeLensProvider implements CodeLensProvider {
     async provideCodeLenses(document: TextDocument): Promise<CodeLens[]> {
@@ -10,8 +11,8 @@ export class PitonResultCodeLensProvider implements CodeLensProvider {
 
       const codeLens = map(pitonResultFile.filePartResults, p => 
         new CodeLens(p.parsedPart.range, {
-            command: '',
-            title: `${p.result} - ${p.resultMessage} on ${p.lastRun}`
+            command: 'vscode.open',
+            title: `${p.result} - ${p.resultMessage} on ${p.lastRun.format('MMM D h:mm:ssa')}`
           })
       );
   
