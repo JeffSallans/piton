@@ -11,19 +11,33 @@ export interface PitonFilePart {
      * @pn-AlwaysAfter - Always runs no matter the result of the check part. Terminated by @pn-AlwaysAfterEnd
     */
     type: string;
+    /** The part of the file this object covers */
     rawText: string;
+    /** The query to run for the given query */
     sanitizedQuery: string;
+    /** The order this part is, in the file */
     order: number;
     /** The start of the part */
     range: Range;
 
+    /** True if the file part should be skipped */
+    skip: boolean;
+
     /** Check params */
 
+    /** Description to help organize things */
     name: string;
-    /** Can be no_result, column_to_equal, or result_matches_snapshot */
+
+    /** The SQL result column name that is used to merge with the CSV review */
+    idColumn: string;
+
+    /** The SQL result column name that is used to determine if the row should fail the test */
+    approveColumn: string;
+
+    /** NOT IMPLEMENTED Can be no_result, column_to_equal, or result_matches_snapshot */
     expect: string;
-    /** Name of the column returned to check for equality */
+    /** NOT IMPLEMENTED Name of the column returned to check for equality */
     expectColumn: string;
-    /** What to compare that the column value is. Defaults to pass. */
+    /** NOT IMPLEMENTED What to compare that the column value is. Defaults to pass. */
     expectColumnValue: string;
 }

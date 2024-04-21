@@ -1,10 +1,13 @@
-import { filter, map, some } from "lodash";
+import { filter, keyBy, map, set, get, some } from "lodash";
+import * as fs from 'fs';
+import dayjs from "dayjs";
+import { csv2json } from "json-2-csv";
+
 import { PitonFile } from "../models/PitonFile";
 import { SqlDialectAdapter } from "../models/SqlDialectAdapter";
 import sql from '../sql-dialects/postgres';
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
-import dayjs from "dayjs";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
 
 /**
@@ -41,6 +44,23 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
         // Only run Check queries
         if (part.type !== 'Check') { continue; }
 
+        // Skip if noted
+        if (part.skip) { continue; }
+
+        const csvResultPath = `${file.folderPath}${file.name}.${part.name || 'check'}${part.order}.csv`;
+
+        // Get existing result if exists
+        let prevPartResultFile: object[] = [];
+        try {
+            if (fs.existsSync(csvResultPath)) {
+                const fileString = fs.readFileSync(csvResultPath).toString();
+                prevPartResultFile = csv2json(fileString);
+            }
+        }
+        catch (e: any) {
+            OutputChannelLogger.error(`====== PREV CSV PARSE ERROR ======\n${e?.stack || e}`, true);
+        }
+
         let result = 'Fail';
         let resultData = [];
         try {
@@ -53,9 +73,13 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
             continue;
         }
 
+        mergeResultWithPrevious(resultData, part.idColumn, part.approveColumn, prevPartResultFile);
+
         if (part.expect === 'no_results') {
-            result = (resultData.length === 0) ? 'Pass' : 'Fail';
+            const failedRows = resultData.filter(r => get(r, part.approveColumn, 0) !== 1).length; 
+            result = (failedRows === 0) ? 'Pass' : 'Fail';
         }
+
         filePartResults.push({
             type: part.type,
             parsedPart: part,
@@ -64,6 +88,7 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
             result,
             resultData,
             resultMessage: '',
+            resultFilePath: csvResultPath,
             exceptions: '',
             allExceptions: [],
             confirmedExceptions: []
@@ -94,6 +119,16 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     return fileResult;
 }
 
+/** Modifieds result with approveCol value from the previous result */
+function mergeResultWithPrevious(result: object[], idCol: string, approveCol: string, prevResult: object[]): void {
+    // Filter Previous with 0 or 1 set for approve
+    const prevDictionary = keyBy(prevResult, idCol);
+
+    // Update approve column in result
+    for (const r of result) {
+        set(r, approveCol, get(prevDictionary[get(r, idCol)], approveCol, ''));
+    }
+}
 
 // runFilePart(filePart: XQFilePart)
 

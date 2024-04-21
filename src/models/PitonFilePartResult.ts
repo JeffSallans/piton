@@ -10,6 +10,8 @@ export interface PitonFilePartResult {
     /** (Ran/Pass/Pass_with_exceptions/Failed) */
     result: string;
     resultMessage: string;
+    /** Absolute path to the result file */
+    resultFilePath: string;
     /** Example: 10/30 */
     exceptions: string;
     

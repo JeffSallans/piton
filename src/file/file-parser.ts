@@ -1,7 +1,8 @@
 import { Range, TextDocument } from "vscode";
+import { map, first } from 'lodash';
 import { PitonFile } from "../models/PitonFile";
 import { PitonFilePart } from "../models/PitonFilePart";
-import { map, first } from 'lodash';
+import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
 
 export function getFileFromDoc(file: TextDocument): PitonFile {
     const text = file.getText();
@@ -54,6 +55,14 @@ function parsePitonComment(filePart: string, order: number, file: string): Piton
     const name = (nameRegex.exec(filePart) || [])[1];
     const checkRegex = /\s*?\-\-\s+?pn\-check\s(.*?)\s*?\r?\n/gi;
     const isTypeCheck = (checkRegex.exec(filePart) || [])[0];
+    const skipRegex = /\s*?\-\-\s+?pn\-skip\s(.*?)\s*?\r?\n/gi;
+    const skip = (skipRegex.exec(filePart) || [])[1];
+    
+    const idColumnRegex = /\s*?\-\-\s+?pn\-id-col\s(.*?)\s*?\r?\n/gi;
+    const idColumn = (idColumnRegex.exec(filePart) || [])[1];
+    const approveColumnRegex = /\s*?\-\-\s+?pn\-approve-col\s(.*?)\s*?\r?\n/gi;
+    const approveColumn = (approveColumnRegex.exec(filePart) || [])[1];
+
     const expectRegex = /\s*?\-\-\s+?pn\-expect\s(.*?)\s*?\r?\n/gi;
     const expect = (expectRegex.exec(filePart) || [])[1];
     const expectColumnRegex = /\s*?\-\-\s+?pn\-expectColumn\s(.*?)\s*?\r?\n/gi;
@@ -66,13 +75,28 @@ function parsePitonComment(filePart: string, order: number, file: string): Piton
     const checkNoNewlineRegex = /\s*?\-\-\s+?pn\-check/gi;
     const line = (getLineNumber(file, checkNoNewlineRegex)[order - 1] || { number: 0 })?.number;
 
+    let isCheckParamsValid = true;
+    if (!!isTypeCheck && !idColumn) { 
+        isCheckParamsValid = false;
+        OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-id-col for pn-check #${order}\n${filePart}`, true);
+    }
+    if (!!isTypeCheck && !sanitizedQuery) {
+        isCheckParamsValid = false;
+        OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing SELECT for pn-check #${order}\n${filePart}`, true);
+    }
+
     return {
         rawText: filePart,
         order,
         range: new Range(line, 0, line, 0),
         name,
-        type: (isTypeCheck) ? 'Check' : 'Other',
-        expect,
+        skip: !!skip,
+
+        type: (!!isTypeCheck && isCheckParamsValid) ? 'Check' : 'Other',
+        idColumn,
+        approveColumn: approveColumn || 'approved',
+        
+        expect: 'no_results',
         expectColumn,
         expectColumnValue,
         sanitizedQuery,

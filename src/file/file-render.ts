@@ -2,9 +2,10 @@
 
 import { Position, Range, TextDocument, TextEditor } from "vscode";
 import * as fs from 'fs';
-import { PitonFile } from "../models/PitonFile";
 import { get, isNull } from "lodash";
 import { json2csv } from "json-2-csv";
+
+import { PitonFile } from "../models/PitonFile";
 import { PitonFileResult } from "../models/PitonFileResult";
 
 export async function updateFile(editor: TextEditor, file: PitonFile, fileResult: PitonFileResult) {
@@ -29,13 +30,13 @@ export async function updateFile(editor: TextEditor, file: PitonFile, fileResult
     // 4. Create Exception file
     for (const p of file.parts) {
         const result = fileResult.filePartResults[p.order];
-        if (result !== undefined) {
-            createCSVFile(`${file.folderPath}${file.name}.${p.name || 'check'}${p.order}.csv`, result.resultData);
+        if (result !== undefined && result.resultData.length > 0) {
+            createCSVFile(result.resultFilePath, result.resultData);
         }
     }
 }
 
-
+/** Writes the json object to the given file path. If a file exists, the file is overwritten */
 function createCSVFile(filePath: string, data: object[]) {
     const csvString = json2csv(data, {});
     fs.writeFileSync(filePath, csvString);

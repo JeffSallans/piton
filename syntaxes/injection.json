@@ -12,7 +12,19 @@
             "include": "#piton-runSchedule"
         },
         {
+            "include": "#piton-count"
+        },
+        {
+            "include": "#piton-skip"
+        },
+        {
             "include": "#piton-check"
+        },
+        {
+            "include": "#piton-id-col"
+        },
+        {
+            "include": "#piton-approve-col"
         }
     ],
     "repository": {
@@ -28,9 +40,25 @@
             "match": "pn-runSchedule",
             "name": "keyword.piton-runSchedule"
         },
+        "piton-count": {
+            "match": "pn-count",
+            "name": "keyword.piton-count"
+        },
+        "piton-skip": {
+            "match": "pn-skip",
+            "name": "keyword.piton-skip"
+        },
         "piton-check": {
             "match": "pn-check",
             "name": "keyword.piton-check"
+        },
+        "piton-id-col": {
+            "match": "pn-id-col",
+            "name": "keyword.piton-id-col"
+        },
+        "piton-approve-col": {
+            "match": "pn-approve-col",
+            "name": "keyword.piton-approve-col"
         }
     }
 }
