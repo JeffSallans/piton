@@ -2,7 +2,7 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.88.0"
   },
