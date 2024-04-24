@@ -1,8 +1,9 @@
 import { Range, TextDocument } from "vscode";
-import { map, first } from 'lodash';
+import { map, first, range, includes } from 'lodash';
 import { PitonFile } from "../models/PitonFile";
 import { PitonFilePart } from "../models/PitonFilePart";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
+import { PitonLanguageClient } from "../language/PitonLanguageClient";
 
 export function getFileFromDoc(file: TextDocument): PitonFile {
     const text = file.getText();
@@ -13,6 +14,9 @@ export function getFileFromDoc(file: TextDocument): PitonFile {
 
 /** Returns */
 export function getFile(filePath: string, fileName: string, text: string): PitonFile {
+    // Clear diagnostics for the file
+    const filePathAndName = `${filePath}${fileName}`;
+    PitonLanguageClient.clearDiagnosticErrors(filePathAndName);
 
     // File level params
     const connectionStringRegex = /\s*?\-\-\s+?pn\-connectionString\s(.*?)\s*?\r?\n/gi;
@@ -22,14 +26,31 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
     const sqlDialectRegex = /\s*?\-\-\s+?pn\-sqlDialect\s(.*?)\s*?\r?\n/gi;
     const sqlDialect = (sqlDialectRegex.exec(text) || [])[1];
 
+    if (!sqlDialect) {
+        PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), 'missing pn-sqlDialect');
+        OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-sqlDialect \n${text}`, true);
+    }
+    const validDialects = ['postgres', 'duckdb'];
+    if (!validDialects.includes(sqlDialect)) {
+        PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), `invalid pn-sqlDialect given ${sqlDialect} expecting one of ${validDialects.concat(', ')}`);
+        OutputChannelLogger.error(`====== SYNTAX ERROR ======\n invalid pn-sqlDialect given ${sqlDialect} expecting one of ${validDialects.concat(', ')} \n${text}`, true);
+    }
+    if (sqlDialect !== 'duckdb' && !connectionString) { 
+        PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), 'missing pn-connectionString');
+        OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-connectionString \n${text}`, true);
+    }
+
     // Count Query
     const countQuery = parseCountQuery(text);
 
     // File parts
     const fileBlocksByTokens = getFileSplitByPitonComment(text);
     const fileParts = map(fileBlocksByTokens, (block, index) => {
-        return parsePitonComment(block, index, text);
+        return parsePitonComment(block, index, text, filePathAndName);
     });
+
+    // show the diagnostics for the file
+    PitonLanguageClient.updateDiagnosticCollection(filePathAndName);
 
     return {
         name: fileName,
@@ -50,7 +71,7 @@ function getFileSplitByPitonComment(file: string): string[] {
 }
 
 /** Takes a comment and sql underneath and pulls out query data */
-function parsePitonComment(filePart: string, order: number, file: string): PitonFilePart {
+function parsePitonComment(filePart: string, order: number, file: string, filePathAndName: string): PitonFilePart {
     const nameRegex = /\s*?\-\-\s+?pn\-name\s(.*?)\s*?\r?\n/gi;
     const name = (nameRegex.exec(filePart) || [])[1];
     const checkRegex = /\s*?\-\-\s+?pn\-check\s(.*?)\s*?\r?\n/gi;
@@ -78,10 +99,12 @@ function parsePitonComment(filePart: string, order: number, file: string): Piton
     let isCheckParamsValid = true;
     if (!!isTypeCheck && !idColumn) { 
         isCheckParamsValid = false;
+        PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(line, 0, line, 100), 'missing pn-id-col for pn-check');
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-id-col for pn-check #${order}\n${filePart}`, true);
     }
     if (!!isTypeCheck && !sanitizedQuery) {
         isCheckParamsValid = false;
+        PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(line, 0, line, 100), 'missing SELECT for pn-check');
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing SELECT for pn-check #${order}\n${filePart}`, true);
     }
 

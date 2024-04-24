@@ -9,7 +9,7 @@ from public.piton_test
 
 -- pn-check
 -- pn-expect no_results
--- pn-results
+-- pn-id-col id
 select *
 from public.piton_test
 where name is null or name = ''

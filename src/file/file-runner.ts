@@ -5,7 +5,8 @@ import { csv2json } from "json-2-csv";
 
 import { PitonFile } from "../models/PitonFile";
 import { SqlDialectAdapter } from "../models/SqlDialectAdapter";
-import sql from '../sql-dialects/postgres';
+import postgres from '../sql-dialects/postgres';
+import duckdb from '../sql-dialects/duckdb';
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
@@ -14,8 +15,12 @@ import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogge
  * Execute the file and return the result
  */
 export async function runFile(file: PitonFile): Promise<PitonFileResult> {
-    //const sql: SqlDialectAdapter = require(`../sql-dialects/${file.sqlDialect}.ts`);
     OutputChannelLogger.log(`====== RUNNING FILE =======\n${file.name}`);
+    
+    let sql: SqlDialectAdapter = duckdb;
+    if (file.sqlDialect === 'postgres') {
+        sql = postgres;
+    }
 
     try {
         await sql.setupConnection(file.connectionString);

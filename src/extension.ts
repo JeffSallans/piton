@@ -23,6 +23,9 @@ export function activate(context: vscode.ExtensionContext) {
 	let completeItemDisposible = PitonLanguageClient.activate();
 	context.subscriptions.push(completeItemDisposible);
 
+	let diagnosticDisposible = PitonLanguageClient.activateDiagnostic();
+	context.subscriptions.push(diagnosticDisposible);
+
 	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
 		? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
 
