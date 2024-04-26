@@ -113,6 +113,14 @@ Example:
 -- pn-count
 select *
 from public.piton_test`
+                    },
+                    {
+                        label: 'pn-skip',
+                        insertText: 'pn-skip',
+                        detail: 'Skips the entire test file if it exists',
+                        documentation: `Example:
+-- pn-sqlDialect
+-- pn-skip`
                     }
                 ];
             }

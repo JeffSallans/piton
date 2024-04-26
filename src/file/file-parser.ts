@@ -25,7 +25,9 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
     const runScheduleCron = (runScheduleCronRegex.exec(text) || [])[1];
     const sqlDialectRegex = /\s*?\-\-\s+?pn\-sqlDialect\s(.*?)\s*?\r?\n/gi;
     const sqlDialect = (sqlDialectRegex.exec(text) || [])[1];
-
+    const skipRegex = /\s*?\-\-\s+?(pn\-skip)\s(.*?)\s*?\r?\n/gi;
+    const skip = (skipRegex.exec(text) || [])[1];
+    
     if (!sqlDialect) {
         PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), 'missing pn-sqlDialect');
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-sqlDialect \n${text}`, true);
@@ -59,6 +61,7 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
         runScheduleCron: runScheduleCron,
         sqlDialect: sqlDialect,
         parts: fileParts,
+        skip: !!skip,
 
         countQuery,
     };
@@ -76,9 +79,7 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
     const name = (nameRegex.exec(filePart) || [])[1];
     const checkRegex = /\s*?\-\-\s+?pn\-check\s(.*?)\s*?\r?\n/gi;
     const isTypeCheck = (checkRegex.exec(filePart) || [])[0];
-    const skipRegex = /\s*?\-\-\s+?pn\-skip\s(.*?)\s*?\r?\n/gi;
-    const skip = (skipRegex.exec(filePart) || [])[1];
-    
+
     const idColumnRegex = /\s*?\-\-\s+?pn\-id-col\s(.*?)\s*?\r?\n/gi;
     const idColumn = (idColumnRegex.exec(filePart) || [])[1];
     const approveColumnRegex = /\s*?\-\-\s+?pn\-approve-col\s(.*?)\s*?\r?\n/gi;
@@ -113,7 +114,7 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
         order,
         range: new Range(line, 0, line, 0),
         name,
-        skip: !!skip,
+        skip: false,
 
         type: (!!isTypeCheck && isCheckParamsValid) ? 'Check' : 'Other',
         idColumn,

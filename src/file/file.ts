@@ -1,4 +1,4 @@
-import { Progress, TextDocument, TextEditor, window, } from "vscode";
+import { CancellationToken, Progress, TextDocument, TextEditor, window, } from "vscode";
 import * as fs from 'fs';
 import { PitonFile } from "../models/PitonFile";
 import { getFile, getFileFromDoc } from "./file-parser";
@@ -106,12 +106,13 @@ export async function parseAllFiles(workspaceRoot: string) {
 }
 
 /** Parse */
-export async function runAllFiles(workspaceRoot: string, progress: Progress<{message?:string, increment?:number}>) {
+export async function runAllFiles(workspaceRoot: string, progress: Progress<{message?:string, increment?:number}>, cancelilation: CancellationToken) {
     fileData = await getTests(workspaceRoot);
     const numberOfFiles = values(fileData).length;
     let index = 0;
     for(const file of values(fileData)) {
         index++;
+        if (cancelilation.isCancellationRequested) { return; }
         if (file === null) { continue; }
         try {
             fileResultData[file.name] = await runFile(file);

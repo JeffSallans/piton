@@ -17,6 +17,19 @@ import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogge
 export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     OutputChannelLogger.log(`====== RUNNING FILE =======\n${file.name}`);
     
+    // Skip if noted
+    if (file.skip) { 
+        OutputChannelLogger.log(`====== SKIPPING FILE =======\n${file.name}`);
+        return {
+            result: 'Skipped',
+            count: 0,
+            errorCount: 0,
+            resultSummary: '',
+            parsedFile: file,
+            filePartResults: []
+        };
+    }
+
     let sql: SqlDialectAdapter = duckdb;
     if (file.sqlDialect === 'postgres') {
         sql = postgres;

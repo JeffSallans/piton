@@ -10,5 +10,7 @@ export interface PitonFile {
     connectionString: string;
     runScheduleCron: string;
     countQuery: string;
+    /** Set to true if the file should not run */
+    skip: boolean;
     parts: Array<PitonFilePart>;   
 }   

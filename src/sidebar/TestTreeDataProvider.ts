@@ -82,6 +82,11 @@ export class PitonTestItem extends vscode.TreeItem {
 				light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pitons-file-failure.svg'),
 				dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pitons-file-failure.svg')
 			};			
+		} else if (result === 'Skipped') {
+			this.iconPath = {
+				light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pitons-file-skip.svg'),
+				dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pitons-file-skip.svg')
+			};			
 		}
 		else {
 			this.iconPath = {

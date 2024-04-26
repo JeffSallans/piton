@@ -8,6 +8,9 @@ import { PitonCodeLensProvider } from './codelens/runner-codelens';
 import { TestTreeDataProvider } from './sidebar/TestTreeDataProvider';
 import { PitonResultCodeLensProvider } from './codelens/results-codelens';
 import { PitonLanguageClient } from './language/PitonLanguageClient';
+import postgres from './sql-dialects/postgres';
+import duckdb from './sql-dialects/duckdb';
+import { OutputChannelLogger } from './logging-and-debugging/OutputChannelLogger';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -128,14 +131,23 @@ export function activate(context: vscode.ExtensionContext) {
 	const runAllDisposable = vscode.commands.registerCommand('piton.runAll', async () => {
 		vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
-			cancellable: false,
+			cancellable: true,
 			title: 'Running Piton File'
-		}, async (progress) => {
+		}, async (progress, cancelilation) => {
 			
+			cancelilation.onCancellationRequested(() => {
+	  
+			  vscode.window.showInformationMessage("DB Connections Cancelled");
+			  OutputChannelLogger.log('====== DB Connections Cancelled ======');
+			  postgres.closeConnection();
+			  duckdb.closeConnection();
+			  return;
+			});
+
 			progress.report({  increment: 0 });
 		
 			// Confirm Exceptions
-			await runAllFiles(rootPath, progress);
+			await runAllFiles(rootPath, progress, cancelilation);
 
 			// Render
 			renderResults(vscode.window.activeTextEditor);
@@ -186,6 +198,15 @@ export function activate(context: vscode.ExtensionContext) {
 		new PitonResultCodeLensProvider()
 	);
 	context.subscriptions.push(codeLensResultProviderDisposable);
+
+	// Run parsing on save
+	const onSaveDisposible = vscode.workspace.onDidSaveTextDocument((e) => {
+		const isActiveFile = e === vscode.window.activeTextEditor?.document;
+		if (isActiveFile && vscode.window?.activeTextEditor !== undefined && vscode.window?.activeTextEditor?.document !== undefined) {
+			parseActiveFile(vscode.window.activeTextEditor.document);
+		}
+	});
+	context.subscriptions.push(onSaveDisposible);
 }
 
 // This method is called when your extension is deactivated
