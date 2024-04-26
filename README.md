@@ -1,71 +1,84 @@
-# infusion-xq README
+# Piton
 
-This is the README for your extension "infusion-xq". After writing up a brief description, we recommend including the following sections.
+Piton is a portable SQL testing VS Code Extension. The goal is to be an easy to use SQL tool for Quality Engineers.
 
-## Features
+## Installation
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+1. Download and install Piton from the [marketplace]()
 
-For example if there is an image subfolder under your extension project workspace:
+1. Click the Piton icon on the sidebar
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Click the "create piton example" button, this won't show if a .piton.sql exists already
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+1. Refresh the list to show 1 created file
 
-## Requirements
+1. Run the file and look at Piton output for the results
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+1. Optional - Install SQL Parser from the [marketplace](https://marketplace.visualstudio.com/items?itemName=mtxr.sqltools)
+
+1. Optional - Install CSV Viewer from the [marketplace](https://marketplace.visualstudio.com/items?itemName=janisdd.vscode-edit-csv)
+
+## Doc
+
+
+
+## Example
+
+```SQL
+-- pn-connectionString duckdb
+-- pn-sqlDialect duckdb
+
+-- pn-count
+select * -- Explaination
+from public.piton_test
+-- WHERE
+
+-- pn-check
+-- pn-id-col id
+select *
+from public.piton_test
+where name is null or name = ''
+```
+
+## Why Another Testing Library?
+
+There are more formal SQL testing frameworks that requires a lot of developer setup and assistance. The goal of this tool is to be lightweight and something a QA can add to their tool kit. Similar to show Postman is help QAs even when Swagger is used.
+
+## Technology
+
+* pg
+* duckdb
+* lodash
+
+## Architecture
+
+| layers |
+| --- |
+| vvv VS Code Extension |
+| vvv File Runner |
+| vvv pg or duckdb |
+| vvv SQL DB |
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+Nothing yet. But planning on connection strings here.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+No Known Issues.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+Feature and bugfixes for each release.
 
-### 1.0.0
+### 0.7.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
+Ready to review by co-workers
 
 ## Following extension guidelines
 
 Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
 
 * [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
 **Enjoy!**

@@ -2,12 +2,13 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "1.0.0",
+  "version": "0.7.0",
   "engines": {
     "vscode": "^1.88.0"
   },
   "categories": [
-    "Other"
+    "Testing",
+    "Data Science"
   ],
   "activationEvents": [
     "onLanguage:sql"
