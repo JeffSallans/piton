@@ -18,9 +18,9 @@ Piton is a portable SQL testing VS Code Extension. The goal is to be an easy to 
 
 1. Optional - Install CSV Viewer from the [marketplace](https://marketplace.visualstudio.com/items?itemName=janisdd.vscode-edit-csv)
 
-## Doc
+## Docs
 
-
+[Docs](./documentation.md)
 
 ## Example
 
@@ -46,26 +46,28 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 
 ## Technology
 
-* pg
-* duckdb
-* lodash
+* [pg](https://www.npmjs.com/package/pg)
+* [duckdb](https://www.npmjs.com/package/duckdb)
+* [lodash](https://www.npmjs.com/package/lodash)
+* [dayjs](https://www.npmjs.com/package/dayjs)
+* [json-2-csv](https://www.npmjs.com/package/json-2-csv)
+* [vscode-extension](https://github.com/Microsoft/vscode-generator-code)
 
 ## Architecture
 
 | layers |
 | --- |
-| vvv VS Code Extension |
-| vvv File Runner |
-| vvv pg or duckdb |
-| vvv SQL DB |
-
-## Extension Settings
-
-Nothing yet. But planning on connection strings here.
+| VS Code Extension |
+| V |
+| File Runner |
+| V |
+| pg or duckdb |
+| V |
+| SQL DB |
 
 ## Known Issues
 
-No Known Issues.
+* Sometimes the Codelense will not be clickable until a file is closed and re-opened
 
 ## Release Notes
 
