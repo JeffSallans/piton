@@ -5,9 +5,7 @@ Details on the Piton SQL annotations.
 ## Simple File
 
 ```sql
--- pn-connectionString postgres://localhost:5432/dbt_example
--- pn-connectionUser dbt_user
--- pn-connectionPasswordPrompt
+-- pn-connectionString postgres://dbt_user:pn-password@localhost:5432/dbt_example
 -- pn-sqlDialect postgres
 
 -- pn-count
@@ -38,9 +36,7 @@ where name is null or name = ''
 > Click the 'update password' codelense to trigger the password prompt.
 
 ```sql
--- pn-connectionString postgres://localhost:5432/dbt_example
--- pn-connectionUser dbt_user
--- pn-connectionPasswordPrompt
+-- pn-connectionString postgres://dbt_user:pn-password@localhost:5432/dbt_example
 ```
 
 ### pn-sqlDialect
