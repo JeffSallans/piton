@@ -1,19 +1,20 @@
-import { Range, TextDocument } from "vscode";
+import { Range, TextDocument, SecretStorage } from "vscode";
 import { map, first, range, includes } from 'lodash';
 import { PitonFile } from "../models/PitonFile";
 import { PitonFilePart } from "../models/PitonFilePart";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
 import { PitonLanguageClient } from "../language/PitonLanguageClient";
+import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecretStorage";
 
-export function getFileFromDoc(file: TextDocument): PitonFile {
+export async function getFileFromDoc(file: TextDocument, promptPassword: (user: string) => Promise<string>): Promise<PitonFile> {
     const text = file.getText();
     const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
     const results = fileNameRegex.exec(file.fileName) || [];
-    return getFile(`${results[1]}${results[2]}`, results[3], text);
+    return await getFile(`${results[1]}${results[2]}`, results[3], text, promptPassword);
 }
 
 /** Returns */
-export function getFile(filePath: string, fileName: string, text: string): PitonFile {
+export async function getFile(filePath: string, fileName: string, text: string, promptPassword: (user: string) => Promise<string>): Promise<PitonFile> {
     // Clear diagnostics for the file
     const filePathAndName = `${filePath}${fileName}`;
     PitonLanguageClient.clearDiagnosticErrors(filePathAndName);
@@ -21,6 +22,9 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
     // File level params
     const connectionStringRegex = /\s*?\-\-\s+?pn\-connectionString\s(.*?)\s*?\r?\n/gi;
     const connectionString = (connectionStringRegex.exec(text) || [])[1];
+    const connectionUserRegex = /\s*?\-\-\s+?pn\-connectionUser\s(.*?)\s*?\r?\n/gi;
+    const connectionUser = (connectionUserRegex.exec(text) || [])[1];
+
     const runScheduleCronRegex = /\s*?\-\-\s+?pn\-runScheduleCron\s(.*?)\s*?\r?\n/gi;
     const runScheduleCron = (runScheduleCronRegex.exec(text) || [])[1];
     const sqlDialectRegex = /\s*?\-\-\s+?pn\-sqlDialect\s(.*?)\s*?\r?\n/gi;
@@ -42,6 +46,13 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-connectionString \n${text}`, true);
     }
 
+    // Prompt for Connection Password, if it does not exists
+    const connectionPassword = await ExtensionSecretStorage.secretStorage.get(`${connectionString}|${connectionUser}`);
+    if (!connectionPassword) {
+        const givenConnectionPassword = await promptPassword(connectionString);
+        await ExtensionSecretStorage.secretStorage.store(`${connectionString}|${connectionUser}`, givenConnectionPassword);
+    }
+
     // Count Query
     const countQuery = parseCountQuery(text);
 
@@ -57,9 +68,10 @@ export function getFile(filePath: string, fileName: string, text: string): Piton
     return {
         name: fileName,
         folderPath: filePath,
-        connectionString: connectionString,
-        runScheduleCron: runScheduleCron,
-        sqlDialect: sqlDialect,
+        connectionString,
+        connectionUser,
+        runScheduleCron,
+        sqlDialect,
         parts: fileParts,
         skip: !!skip,
 

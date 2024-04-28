@@ -11,6 +11,7 @@ import { PitonLanguageClient } from './language/PitonLanguageClient';
 import postgres from './sql-dialects/postgres';
 import duckdb from './sql-dialects/duckdb';
 import { OutputChannelLogger } from './logging-and-debugging/OutputChannelLogger';
+import { ExtensionSecretStorage } from './logging-and-debugging/ExtensionSecretStorage';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -23,6 +24,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "piton" is now active!');
 
+	ExtensionSecretStorage.activate(context);
+
 	let completeItemDisposible = PitonLanguageClient.activate();
 	context.subscriptions.push(completeItemDisposible);
 
@@ -32,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
 		? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
 
-	parseAllFiles(rootPath);
+	parseAllFiles(rootPath, promptPassword);
 
 	// Samples of `window.registerTreeDataProvider`
 	const testTreeDataProvider = new TestTreeDataProvider(rootPath);
@@ -58,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
             let document = editor.document;
 
 			// PARSE
-			parseActiveFile(document);
+			parseActiveFile(document, promptPassword);
 			const parsedData = getActiveFile();
 			console.log(`${parsedData.name}: connectionString ${parsedData.connectionString}`);
 			map(parsedData.parts, part => {
@@ -87,7 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
 				let document = editor.document;
 
 				// PARSE
-				parseActiveFile(document);
+				parseActiveFile(document, promptPassword);
 			}
 
 			progress.report({ increment: 20 });
@@ -120,7 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Parsing all files');
 
 		// Confirm Exceptions
-		await parseAllFiles(rootPath);
+		await parseAllFiles(rootPath, promptPassword);
 
 		// Render
 		renderResults(vscode.window.activeTextEditor);
@@ -147,7 +150,7 @@ export function activate(context: vscode.ExtensionContext) {
 			progress.report({  increment: 0 });
 		
 			// Confirm Exceptions
-			await runAllFiles(rootPath, progress, cancelilation);
+			await runAllFiles(rootPath, progress, cancelilation, promptPassword);
 
 			// Render
 			renderResults(vscode.window.activeTextEditor);
@@ -203,10 +206,18 @@ export function activate(context: vscode.ExtensionContext) {
 	const onSaveDisposible = vscode.workspace.onDidSaveTextDocument((e) => {
 		const isActiveFile = e === vscode.window.activeTextEditor?.document;
 		if (isActiveFile && vscode.window?.activeTextEditor !== undefined && vscode.window?.activeTextEditor?.document !== undefined) {
-			parseActiveFile(vscode.window.activeTextEditor.document);
+			parseActiveFile(vscode.window.activeTextEditor.document, promptPassword);
 		}
 	});
 	context.subscriptions.push(onSaveDisposible);
+}
+
+async function promptPassword(user: string): Promise<string> {
+	const result = await vscode.window.showInputBox({
+		title: `Password for ${user}`,
+		password: true,
+	});
+	return result || '';
 }
 
 // This method is called when your extension is deactivated

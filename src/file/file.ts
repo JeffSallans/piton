@@ -4,7 +4,7 @@ import { PitonFile } from "../models/PitonFile";
 import { getFile, getFileFromDoc } from "./file-parser";
 import { runFile } from "./file-runner";
 import { updateFile } from "./file-render";
-import { Dictionary, ceil, floor, forEach, keyBy, map, values } from "lodash";
+import { Dictionary, ceil, floor, forEach, keyBy, keys, map, values } from "lodash";
 import { glob } from "glob";
 import path from "path";
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
@@ -58,9 +58,9 @@ export function getActiveFile(): PitonFile {
 }
 
 /** Parse */
-export function parseActiveFile(file: TextDocument) {
+export async function parseActiveFile(file: TextDocument, promptPassword: (user: string) => Promise<string>) {
     // 1. Parse test1.xq.sql
-    activeFileData = getFileFromDoc(file);
+    activeFileData = await getFileFromDoc(file, promptPassword);
     fileData[activeFileData.name] = activeFileData;
 
     // 2. Parse test1.except.csv file
@@ -100,14 +100,14 @@ export function confirmSnapshot() {
 }
 
 /** Parse */
-export async function parseAllFiles(workspaceRoot: string) {
+export async function parseAllFiles(workspaceRoot: string, promptPassword: (user: string) => Promise<string>) {
     const oldfileData = values(fileData);
-    fileData = await getTests(workspaceRoot);
+    fileData = await getTests(workspaceRoot, promptPassword);
 }
 
 /** Parse */
-export async function runAllFiles(workspaceRoot: string, progress: Progress<{message?:string, increment?:number}>, cancelilation: CancellationToken) {
-    fileData = await getTests(workspaceRoot);
+export async function runAllFiles(workspaceRoot: string, progress: Progress<{message?:string, increment?:number}>, cancelilation: CancellationToken, promptPassword: (user: string) => Promise<string>) {
+    fileData = await getTests(workspaceRoot, promptPassword);
     const numberOfFiles = values(fileData).length;
     let index = 0;
     for(const file of values(fileData)) {
@@ -124,21 +124,26 @@ export async function runAllFiles(workspaceRoot: string, progress: Progress<{mes
     }
 }
 
-export async function getTests(workspaceRoot: string): Promise<Dictionary<PitonFile | null>> {
+export async function getTests(workspaceRoot: string, promptPassword: (user: string) => Promise<string>): Promise<Dictionary<PitonFile | null>> {
     if (workspaceRoot === undefined) { return {}; }
 
     const pitonfiles = await glob('**/*.piton.sql', { ignore: 'node_modules/**', cwd: workspaceRoot });
 
-    const data = map(pitonfiles, f => {
+    let data = [];
+    for (const f of pitonfiles) {
         const fileLocation = path.join(workspaceRoot, f);
         const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
         const results = fileNameRegex.exec(fileLocation) || [];
 
-        if (results?.length <= 2 || results[1] === null || results[2] === null) { return null; }
+        if (results?.length <= 2 || results[1] === null || results[2] === null) {
+            data.push(null);
+            continue;
+        }
 
         const text = fs.readFileSync(fileLocation, 'utf8');
-        return getFile(`${results[1]}${results[2]}`, results[3], text);
-    });
+        const result = await getFile(`${results[1]}${results[2]}`, results[3], text, promptPassword);
+        data.push(result);
+    }
 
     const dataAsDictionary = keyBy(data, d => d?.name || 'NULL'); 
     return dataAsDictionary;

@@ -8,6 +8,8 @@ export interface PitonFile {
     folderPath: string;
     sqlDialect: string;
     connectionString: string;
+    connectionUser: string;
+
     runScheduleCron: string;
     countQuery: string;
     /** Set to true if the file should not run */

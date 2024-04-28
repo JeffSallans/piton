@@ -10,6 +10,7 @@ import duckdb from '../sql-dialects/duckdb';
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
+import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecretStorage";
 
 /**
  * Execute the file and return the result
@@ -36,7 +37,9 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     }
 
     try {
-        await sql.setupConnection(file.connectionString);
+        const connectionPassword = await ExtensionSecretStorage.secretStorage.get(`${file.connectionString}|${file.connectionUser}`) || '';
+        const sensitiveConnectionString = file.connectionString.replace('pn-password', connectionPassword); 
+        await sql.setupConnection(sensitiveConnectionString);
     }
     catch (e: any) {
         OutputChannelLogger.error(`====== CONNECTION ERROR ======\n${e?.stack || e}`, true);

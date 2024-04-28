@@ -6,7 +6,7 @@ let client: Client | null = null;
 const toExport: SqlDialectAdapter = {
     setupConnection: async function(connectionString) {
         client = new Client({
-            connectionString,
+            connectionString
         });
         return await client.connect();
     },
