@@ -37,6 +37,10 @@
         "command": "piton.parseAll",
         "title": "Refresh",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "piton.createExample",
+        "title": "Create Example"
       }
     ],
     "viewsContainers": {
@@ -61,7 +65,7 @@
     "viewsWelcome": [
       {
         "view": "pitonFiles",
-        "contents": "No piton files found [learn more](https://github.com/JeffSallans/piton).\n[Add Piton Test](command:workbench.action.files.newUntitledFile)"
+        "contents": "No piton files found [learn more](https://github.com/JeffSallans/piton).\n[Add Piton Example](command:piton.createExample)"
       }
     ],
     "menus": {

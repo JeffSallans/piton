@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import { confirmExceptions, confirmSnapshot, getActiveFile, getFileResultByName, getTests, parseActiveFile, parseAllFiles, renderResults, runActiveFile, runAllFiles } from './file/file';
 import { map } from 'lodash';
 import { languages } from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { PitonCodeLensProvider } from './codelens/runner-codelens';
 import { TestTreeDataProvider } from './sidebar/TestTreeDataProvider';
 import { PitonResultCodeLensProvider } from './codelens/results-codelens';
@@ -162,6 +164,17 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	});
 	context.subscriptions.push(runAllDisposable);
+
+	const createExampleDisposable = vscode.commands.registerCommand('piton.createExample', async () => {
+		vscode.window.showInformationMessage('Creating Example Piton File');
+
+		// Confirm Exceptions
+		fs.cpSync(path.join(__filename, '..', '..', 'resources','piton-example'), path.join(rootPath, 'piton-example'), {recursive: true});
+
+		// Render
+		testTreeDataProvider.refresh();
+	});
+	context.subscriptions.push(createExampleDisposable);
 
 	const exceptionDisposable = vscode.commands.registerCommand('piton.confirmExceptions', () => {
 		// Confirm Exceptions

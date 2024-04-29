@@ -83,7 +83,9 @@ One per query. Annotates a query to determine the SQL check.
 | pn-id-col | Required | | The column name to use to merge with results |
 | pn-name   | Optional | Order # | Sets a human name to the test |
 | pn-approve-col | Optional | approved | The column name to determine if a result has been reviewed and can be ignored |
-| pn-check-cols | Optional | All Columns | TBD |
+| pn-ignore-cols | Optional | No Columns | WIP - Provide a list of columns separated by a comma to ignore when checking if the approval column should be carried over |
+| pn-no-removed | Optional | False | WIP - Set if removed rows from the snapshot need to be reviewed to pass. |
+| pn-filePath | Optional | N/A | Use in your SQL to replace with the current file path |
 
 ```sql
 -- pn-check

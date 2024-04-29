@@ -47,19 +47,19 @@ export async function getFile(filePath: string, fileName: string, text: string, 
     }
 
     // Prompt for Connection Password, if it does not exists
-    const connectionPassword = await ExtensionSecretStorage.secretStorage.get(`${connectionString}|${connectionUser}`);
-    if (!connectionPassword) {
+    const connectionPassword = await ExtensionSecretStorage.secretStorage.get(`${connectionString}`);
+    if (!connectionPassword && !!connectionString && connectionString.indexOf('pn-password') > 0) {
         const givenConnectionPassword = await promptPassword(connectionString);
-        await ExtensionSecretStorage.secretStorage.store(`${connectionString}|${connectionUser}`, givenConnectionPassword);
+        await ExtensionSecretStorage.secretStorage.store(`${connectionString}`, givenConnectionPassword);
     }
 
     // Count Query
-    const countQuery = parseCountQuery(text);
+    const countQuery = parseCountQuery(text, filePath);
 
     // File parts
     const fileBlocksByTokens = getFileSplitByPitonComment(text);
     const fileParts = map(fileBlocksByTokens, (block, index) => {
-        return parsePitonComment(block, index, text, filePathAndName);
+        return parsePitonComment(block, index, text, filePathAndName, filePath);
     });
 
     // show the diagnostics for the file
@@ -86,7 +86,7 @@ function getFileSplitByPitonComment(file: string): string[] {
 }
 
 /** Takes a comment and sql underneath and pulls out query data */
-function parsePitonComment(filePart: string, order: number, file: string, filePathAndName: string): PitonFilePart {
+function parsePitonComment(filePart: string, order: number, file: string, filePathAndName: string, filePath: string): PitonFilePart {
     const nameRegex = /\s*?\-\-\s+?pn\-name\s(.*?)\s*?\r?\n/gi;
     const name = (nameRegex.exec(filePart) || [])[1];
     const checkRegex = /\s*?\-\-\s+?pn\-check\s(.*?)\s*?\r?\n/gi;
@@ -104,7 +104,10 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
     const expectColumnValueRegex = /\s*?\-\-\s+?pn\-expectColumnValue\s(.*?)\s*?\r?\n/gi;
     const expectColumnValue = (expectColumnValueRegex.exec(filePart) || [])[1];
 
-    const sanitizedQuery = parseCheckQuery(filePart);
+    let sanitizedQuery = parseCheckQuery(filePart);
+    if (!!sanitizedQuery) {
+        sanitizedQuery = sanitizedQuery.replace('{{pn-filePath}}', filePath);
+    }
 
     const checkNoNewlineRegex = /\s*?\-\-\s+?pn\-check/gi;
     const line = (getLineNumber(file, checkNoNewlineRegex)[order - 1] || { number: 0 })?.number;
@@ -142,10 +145,15 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
 /**
  * Returns the SQL query 
  */
-function parseCountQuery(filePart: string): string {
+function parseCountQuery(filePart: string, filePath: string): string {
     const countQueryRegex = /\s*?\-\-\s+?pn\-count.*?\r?\n(?:\-\-[\w\W]*?\r?\n)*?\s*?((SELECT|WITH)[\w\W]+?)\r?\n(?:--|\s+?)/gi;
     const exec = countQueryRegex.exec(filePart) || [];
-    const query = exec[1];
+    let query = exec[1];
+
+    if (!!query) {
+        query = query.replace('{{pn-filePath}}', filePath);
+    }
+
     return query;
 }
 

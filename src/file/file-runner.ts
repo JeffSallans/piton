@@ -1,4 +1,4 @@
-import { filter, keyBy, map, set, get, some } from "lodash";
+import { filter, keyBy, map, set, get, some, keys, every } from "lodash";
 import * as fs from 'fs';
 import dayjs from "dayjs";
 import { csv2json } from "json-2-csv";
@@ -14,13 +14,15 @@ import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecret
 
 /**
  * Execute the file and return the result
+ * @param file The Piton configuration to run
+ * @returns Result for the given file
  */
 export async function runFile(file: PitonFile): Promise<PitonFileResult> {
-    OutputChannelLogger.log(`====== RUNNING FILE =======\n${file.name}`);
+    OutputChannelLogger.log(`====== RUNNING FILE =======\n${file?.name}`);
     
     // Skip if noted
-    if (file.skip) { 
-        OutputChannelLogger.log(`====== SKIPPING FILE =======\n${file.name}`);
+    if (file === undefined || file.skip) { 
+        OutputChannelLogger.log(`====== SKIPPING FILE =======\n${file?.name}`);
         return {
             result: 'Skipped',
             count: 0,
@@ -37,7 +39,7 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     }
 
     try {
-        const connectionPassword = await ExtensionSecretStorage.secretStorage.get(`${file.connectionString}|${file.connectionUser}`) || '';
+        const connectionPassword = await ExtensionSecretStorage.secretStorage.get(`${file.connectionString}`) || '';
         const sensitiveConnectionString = file.connectionString.replace('pn-password', connectionPassword); 
         await sql.setupConnection(sensitiveConnectionString);
     }
@@ -140,15 +142,45 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     return fileResult;
 }
 
-/** Modifieds result with approveCol value from the previous result */
+/**
+ * Modifieds result with approveCol value from the previous result 
+ * @param result 
+ * @param idCol 
+ * @param approveCol 
+ * @param prevResult 
+ */
 function mergeResultWithPrevious(result: object[], idCol: string, approveCol: string, prevResult: object[]): void {
     // Filter Previous with 0 or 1 set for approve
     const prevDictionary = keyBy(prevResult, idCol);
 
     // Update approve column in result
     for (const r of result) {
-        set(r, approveCol, get(prevDictionary[get(r, idCol)], approveCol, ''));
+        const prevRow = prevDictionary[get(r, idCol)];
+        // If column is to be ignored update
+        if (areRowsEqual(r, prevRow)) {
+            set(r, approveCol, get(prevRow, approveCol, ''));
+        }
+        else {
+            set(r, approveCol, '');
+        }
     }
+}
+
+/**
+ * Returns true if the new row contains all the data of the old row.
+ * @param newRow 
+ * @param oldRow 
+ * @param ignoreCols Fields to ignore when comparing
+ */
+function areRowsEqual(newRow: object, oldRow: object, ignoreCols?: string[]): boolean {
+    const fields = keys(newRow);
+    const allMatch = every(fields, (f) => {
+        if (ignoreCols !== undefined && ignoreCols.includes(f)) { return true; }
+
+        const fieldMatches = (get(newRow, f, '') === get(oldRow, f, ''));
+        return fieldMatches;
+    });
+    return allMatch;
 }
 
 // runFilePart(filePart: XQFilePart)

@@ -127,7 +127,7 @@ export async function runAllFiles(workspaceRoot: string, progress: Progress<{mes
 export async function getTests(workspaceRoot: string, promptPassword: (user: string) => Promise<string>): Promise<Dictionary<PitonFile | null>> {
     if (workspaceRoot === undefined) { return {}; }
 
-    const pitonfiles = await glob('**/*.piton.sql', { ignore: 'node_modules/**', cwd: workspaceRoot });
+    const pitonfiles = await glob('**/*.piton.sql', { ignore: ['node_modules/**','*.csv'], cwd: workspaceRoot });
 
     let data = [];
     for (const f of pitonfiles) {
