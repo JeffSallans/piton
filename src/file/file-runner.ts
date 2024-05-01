@@ -7,6 +7,8 @@ import { PitonFile } from "../models/PitonFile";
 import { SqlDialectAdapter } from "../models/SqlDialectAdapter";
 import postgres from '../sql-dialects/postgres';
 import duckdb from '../sql-dialects/duckdb';
+import oracle from '../sql-dialects/oracle';
+
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
@@ -36,6 +38,9 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     let sql: SqlDialectAdapter = duckdb;
     if (file.sqlDialect === 'postgres') {
         sql = postgres;
+    }
+    else if (file.sqlDialect === 'oracledb') {
+        sql = oracle;
     }
 
     try {

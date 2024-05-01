@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { confirmExceptions, confirmSnapshot, getActiveFile, getFileResultByName, getTests, parseActiveFile, parseAllFiles, renderResults, runActiveFile, runAllFiles } from './file/file';
+import { confirmExceptions, confirmSnapshot, getActiveFile, getFileResultByName, getTests, parseActiveFile, parseAllFiles, renderResults, runActiveFile, runAllFiles, updatePassword } from './file/file';
 import { map } from 'lodash';
 import { languages } from 'vscode';
 import * as fs from 'fs';
@@ -64,9 +64,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// PARSE
 			parseActiveFile(document, promptPassword);
-			const parsedData = getActiveFile();
-			console.log(`${parsedData.name}: connectionString ${parsedData.connectionString}`);
-			map(parsedData.parts, part => {
+			const parsedData = getActiveFile(editor);
+			console.log(`${parsedData?.name}: connectionString ${parsedData?.connectionString}`);
+			map(parsedData?.parts, part => {
 				console.log(`${part.name}: rawText ${part.rawText}`);
 			});
 
@@ -98,11 +98,11 @@ export function activate(context: vscode.ExtensionContext) {
 			progress.report({ increment: 20 });
 
 			// RUN
-			await runActiveFile();
-			const parsedData = getActiveFile();
-			const parsedResult = getFileResultByName(parsedData.name);
+			await runActiveFile(editor);
+			const parsedData = getActiveFile(editor);
+			const parsedResult = getFileResultByName(`${parsedData?.name}`);
 			if (parsedResult !== null) {
-				console.log(`${parsedData.name}: count ${parsedResult.count}`);
+				console.log(`${parsedData?.name}: count ${parsedResult.count}`);
 				map(parsedResult.filePartResults, partResult => {
 					console.log(`${partResult.parsedPart.order}: result ${partResult.result} resultData ${partResult.resultData.toString()}`);
 				});
@@ -185,14 +185,20 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(exceptionDisposable);
 
-	const snapshotDisposable = vscode.commands.registerCommand('piton.confirmSnapshot', () => {
-		// Confirm Snapshot
-		confirmSnapshot();
+	const updatePasswordDisposable = vscode.commands.registerCommand('piton.updatePassword', function () {
+		vscode.window.showInformationMessage('Updating Password');
 
-		// Render
-		renderResults(vscode.window.activeTextEditor);
-	});
-	context.subscriptions.push(snapshotDisposable);
+		// Get the active text editor
+        const editor = vscode.window.activeTextEditor;
+
+        if (editor) {
+            let document = editor.document;
+
+			updatePassword(editor, promptPassword);
+        }
+    });
+	context.subscriptions.push(updatePasswordDisposable);
+
 
 	// Get a document selector for the CodeLens provider
 	// This one is any file that has the language of javascript

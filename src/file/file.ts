@@ -9,12 +9,11 @@ import { glob } from "glob";
 import path from "path";
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
+import { PitonLanguageClient } from "../language/PitonLanguageClient";
+import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecretStorage";
 
 /** The parsed files data */
 let fileData: Dictionary<PitonFile | null>;
-
-/** A copy of the active file parsing */
-let activeFileData: PitonFile;
 
 /** The results from the file runs */
 let fileResultData: Dictionary<PitonFileResult> = {};
@@ -47,27 +46,38 @@ export function getFileResultByName(fileAndFolderName: string): PitonFileResult 
     return fileResultData[fileName] || null;
 }
 
+export function getActiveFile(editor: TextEditor | undefined): PitonFile | null {
+    if (editor === undefined) { return null; }
+
+    const activeFileData = getFileByName(editor.document.fileName);
+
+    if (activeFileData === null) { return null; }
+
+    return activeFileData;
+}
+
 /** Return the piton result file for the give file name */
 export function getResultSummary() {
 
 }
 
-/** Return the active piton file */
-export function getActiveFile(): PitonFile {
-    return activeFileData;
-}
-
 /** Parse */
 export async function parseActiveFile(file: TextDocument, promptPassword: (user: string) => Promise<string>) {
     // 1. Parse test1.xq.sql
-    activeFileData = await getFileFromDoc(file, promptPassword);
+    const activeFileData = await getFileFromDoc(file, promptPassword);
     fileData[activeFileData.name] = activeFileData;
 
     // 2. Parse test1.except.csv file
 }
 
 /** Run */
-export async function runActiveFile() {
+export async function runActiveFile(editor: TextEditor | undefined) {
+    if (editor === undefined) { return; }
+
+    const activeFileData = getFileByName(editor.document.fileName);
+
+    if (activeFileData === null) { return; }
+
     const result = await runFile(activeFileData);
     fileData[activeFileData.name] = activeFileData;
     fileResultData[activeFileData.name] = result;
@@ -96,6 +106,18 @@ export function confirmExceptions() {
 
 /** Confirm Snapshot */
 export function confirmSnapshot() {
+
+}
+
+/** Update Password */
+export async function updatePassword(editor: TextEditor | undefined, promptPassword: (user: string) => Promise<string>) {
+    if (editor === undefined) { return; }
+
+    const file = getFileByName(editor.document.fileName);
+    ExtensionSecretStorage.secretStorage.delete(`${file?.connectionString}`);
+
+    const givenConnectionPassword = await promptPassword(`${file?.connectionString}`);
+    await ExtensionSecretStorage.secretStorage.store(`${file?.connectionString}`, givenConnectionPassword);
 
 }
 

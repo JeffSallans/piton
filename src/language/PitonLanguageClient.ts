@@ -1,4 +1,4 @@
-import { map } from "lodash";
+import { filter } from "lodash";
 import { CompletionItem, CompletionList, Diagnostic, DiagnosticCollection, DiagnosticSeverity, ProviderResult, Range, Uri, languages } from "vscode";
 
 export class PitonLanguageClient {
@@ -6,7 +6,8 @@ export class PitonLanguageClient {
     public static diagnosticErrors: { filePath: string, range: Range, message: string }[] = [];
 
     public static clearDiagnosticErrors(filePath: string) {
-        this.diagnosticErrors = (this.diagnosticErrors || []).filter(e => e.filePath !== filePath);
+        const errors = this.diagnosticErrors || [];
+        this.diagnosticErrors = filter(errors, e => e.filePath !== filePath); 
     }
 
     public static addDiagnosticErrors(filePath: string, range: Range, message: string) {
@@ -14,7 +15,7 @@ export class PitonLanguageClient {
     }
 
     public static updateDiagnosticCollection(filePath: string) {
-        const diagnostics = this.diagnosticErrors.filter(e => e.filePath = filePath).map(e => new Diagnostic(e.range, e.message, DiagnosticSeverity.Error))
+        const diagnostics = this.diagnosticErrors.filter(e => e.filePath == filePath).map(e => new Diagnostic(e.range, e.message, DiagnosticSeverity.Error))
         this.diagnosticCollection.set(Uri.parse(`file:${filePath}`), diagnostics);
     }
 

@@ -41,6 +41,10 @@
       {
         "command": "piton.createExample",
         "title": "Create Example"
+      },
+      {
+        "command": "piton.updatePassword",
+        "title": "Update Password"
       }
     ],
     "viewsContainers": {
@@ -107,6 +111,7 @@
     "@types/lodash": "^4.17.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",
+    "@types/oracledb": "^6.4.0",
     "@types/pg": "^8.11.5",
     "@types/vscode": "^1.88.0",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
@@ -122,6 +127,7 @@
     "glob": "^10.3.12",
     "json-2-csv": "^5.5.1",
     "lodash": "^4.17.21",
+    "oracledb": "^6.4.0",
     "pg": "^8.11.5",
     "vscode-textmate": "^9.0.0"
   }

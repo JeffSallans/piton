@@ -33,6 +33,10 @@ where name is null or name = ''
 
 (Required) Need one per file. Used to define the database connection. 
 
+| Param | Required | Defualt | Description |
+| --- | --- | --- | --- |
+| pn-password | Inline | N/A | Will trigger a prompt to enter a password to your computer's keystore. On run, pn-password will be replaced with the actual password |
+
 > Click the 'update password' codelense to trigger the password prompt.
 
 ```sql
@@ -43,6 +47,7 @@ where name is null or name = ''
 
 (Required) Need one per file. Used to define the database driver to use. Options: 
 * postgres
+* oracledb
 * duckdb
 
 ```sql
@@ -85,7 +90,7 @@ One per query. Annotates a query to determine the SQL check.
 | pn-approve-col | Optional | approved | The column name to determine if a result has been reviewed and can be ignored |
 | pn-ignore-cols | Optional | No Columns | WIP - Provide a list of columns separated by a comma to ignore when checking if the approval column should be carried over |
 | pn-no-removed | Optional | False | WIP - Set if removed rows from the snapshot need to be reviewed to pass. |
-| pn-filePath | Optional | N/A | Use in your SQL to replace with the current file path |
+| pn-filePath | Inline SQL | N/A | Use in your SQL to replace with the current file path |
 
 ```sql
 -- pn-check

@@ -106,7 +106,7 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
 
     let sanitizedQuery = parseCheckQuery(filePart);
     if (!!sanitizedQuery) {
-        sanitizedQuery = sanitizedQuery.replace('{{pn-filePath}}', filePath);
+        sanitizedQuery = sanitizedQuery.replace('pn-filePath', filePath);
     }
 
     const checkNoNewlineRegex = /\s*?\-\-\s+?pn\-check/gi;
@@ -151,7 +151,7 @@ function parseCountQuery(filePart: string, filePath: string): string {
     let query = exec[1];
 
     if (!!query) {
-        query = query.replace('{{pn-filePath}}', filePath);
+        query = query.replace('pn-filePath', filePath);
     }
 
     return query;
