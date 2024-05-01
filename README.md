@@ -20,7 +20,7 @@ Piton is a portable SQL testing VS Code Extension. The goal is to be an easy to 
 
 ## Docs
 
-[Docs](./documentation.md)
+[Docs](documentation.md)
 
 ## Example
 

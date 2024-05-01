@@ -3,6 +3,10 @@
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
   "version": "0.7.0",
+  "repository": {
+    "url": "https://github.com/JeffSallans/piton"
+  },
+  "license":"MIT",
   "engines": {
     "vscode": "^1.88.0"
   },
