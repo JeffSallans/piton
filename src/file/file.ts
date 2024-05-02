@@ -76,7 +76,7 @@ export async function runActiveFile(editor: TextEditor | undefined) {
 
     const activeFileData = getFileByName(editor.document.fileName);
 
-    if (activeFileData === null) { return; }
+    if (activeFileData === undefined || activeFileData === null) { return; }
 
     const result = await runFile(activeFileData);
     fileData[activeFileData.name] = activeFileData;

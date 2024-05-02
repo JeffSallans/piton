@@ -23,7 +23,7 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     OutputChannelLogger.log(`====== RUNNING FILE =======\n${file?.name}`);
     
     // Skip if noted
-    if (file === undefined || file.skip) { 
+    if (file === undefined || file.skip || !file.sqlDialect) { 
         OutputChannelLogger.log(`====== SKIPPING FILE =======\n${file?.name}`);
         return {
             result: 'Skipped',
@@ -45,7 +45,7 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
 
     try {
         const connectionPassword = await ExtensionSecretStorage.secretStorage.get(`${file.connectionString}`) || '';
-        const sensitiveConnectionString = file.connectionString.replace('pn-password', connectionPassword); 
+        const sensitiveConnectionString = `${file?.connectionString}`.replace('pn-password', connectionPassword); 
         await sql.setupConnection(sensitiveConnectionString);
     }
     catch (e: any) {

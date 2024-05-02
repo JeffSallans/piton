@@ -15,7 +15,7 @@ export class PitonLanguageClient {
     }
 
     public static updateDiagnosticCollection(filePath: string) {
-        const diagnostics = this.diagnosticErrors.filter(e => e.filePath == filePath).map(e => new Diagnostic(e.range, e.message, DiagnosticSeverity.Error))
+        const diagnostics = this.diagnosticErrors.filter(e => e.filePath === filePath).map(e => new Diagnostic(e.range, e.message, DiagnosticSeverity.Error));
         this.diagnosticCollection.set(Uri.parse(`file:${filePath}`), diagnostics);
     }
 
