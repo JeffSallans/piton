@@ -6,7 +6,7 @@
   "repository": {
     "url": "https://github.com/JeffSallans/piton"
   },
-  "license":"MIT",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.88.0"
   },
@@ -131,6 +131,7 @@
     "glob": "^10.3.12",
     "json-2-csv": "^5.5.1",
     "lodash": "^4.17.21",
+    "mssql": "^10.0.2",
     "oracledb": "^6.4.0",
     "pg": "^8.11.5",
     "vscode-textmate": "^9.0.0"
