@@ -2,7 +2,8 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "0.7.1",
+  "version": "0.7.2",
+  "icon": "./resources/pitons.png",
   "repository": {
     "url": "https://github.com/JeffSallans/piton"
   },

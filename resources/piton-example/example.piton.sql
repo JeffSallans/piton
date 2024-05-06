@@ -10,3 +10,4 @@ from 'pn-filePathdata.csv'
 SELECT *
 from 'pn-filePathdata.csv'
 where name is null or name = ''
+
