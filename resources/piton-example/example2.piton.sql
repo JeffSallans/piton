@@ -13,3 +13,4 @@ from public.piton_test
 select *
 from public.piton_test
 where name is null or name = ''
+

@@ -2,10 +2,11 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "repository": {
     "url": "https://github.com/JeffSallans/piton"
   },
+  "publisher": "JeffSallans",
   "license": "MIT",
   "engines": {
     "vscode": "^1.88.0"

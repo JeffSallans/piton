@@ -6,15 +6,18 @@ export class PitonLanguageClient {
     public static diagnosticErrors: { filePath: string, range: Range, message: string }[] = [];
 
     public static clearDiagnosticErrors(filePath: string) {
+        if (filePath === undefined) { return; }
         const errors = this.diagnosticErrors || [];
         this.diagnosticErrors = filter(errors, e => e.filePath !== filePath); 
     }
 
     public static addDiagnosticErrors(filePath: string, range: Range, message: string) {
+        if (filePath === undefined) { return; }
         this.diagnosticErrors.push({ filePath, range, message });
     }
 
     public static updateDiagnosticCollection(filePath: string) {
+        if (filePath === undefined) { return; }
         const diagnostics = this.diagnosticErrors.filter(e => e.filePath === filePath).map(e => new Diagnostic(e.range, e.message, DiagnosticSeverity.Error));
         this.diagnosticCollection.set(Uri.parse(`file:${filePath}`), diagnostics);
     }
