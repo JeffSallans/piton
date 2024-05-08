@@ -188,17 +188,3 @@ function areRowsEqual(newRow: object, oldRow: object, ignoreCols?: string[]): bo
     return allMatch;
 }
 
-// runFilePart(filePart: XQFilePart)
-
-
-// runPreCheck(filePart: XQFilePart)
-
-// runCount(filePart: XQFilePart)
-
-// runOnSuccess(filePart: XQFilePart)
-
-// runOnFailure(filePart: XQFilePart)
-
-// runAlwaysAfter(filePart: XQFilePart)
-
-// runCheck(filePart: XQFilePart)

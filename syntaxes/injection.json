@@ -6,6 +6,9 @@
             "include": "#piton-connectionString"
         },
         {
+            "include": "#piton-connectionStringPassword"
+        },
+        {
             "include": "#piton-sqlDialect"
         },
         {
@@ -26,15 +29,15 @@
         {
             "include": "#piton-approve-col"
         }
-        ,
-        {
-            "include": "#piton-file-path"
-        }
     ],
     "repository": {
         "piton-connectionString": {
             "match": "pn-connectionString",
             "name": "keyword.piton-connectionString"
+        },
+        "piton-connectionStringPassword": {
+            "match": "pn-password",
+            "name": "keyword.piton-password"
         },
         "piton-sqlDialect": {
             "match": "pn-sqlDialect",
@@ -63,10 +66,6 @@
         "piton-approve-col": {
             "match": "pn-approve-col",
             "name": "keyword.piton-approve-col"
-        },
-        "piton-file-path": {
-            "match": "pn-file-path",
-            "name": "keyword.piton-file-path"
         }
     }
 }

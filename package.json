@@ -94,6 +94,13 @@
     },
     "grammars": [
       {
+        "path": "./syntaxes/script-injection.json",
+        "scopeName": "piton-sql.script-injection",
+        "injectTo": [
+          "source.sql"
+        ]
+      },
+      {
         "path": "./syntaxes/injection.json",
         "scopeName": "piton-comment.injection",
         "injectTo": [
@@ -130,6 +137,7 @@
   "dependencies": {
     "dayjs": "^1.11.10",
     "duckdb": "^0.10.1",
+    "fast-fuzzy": "^1.12.0",
     "glob": "^10.3.12",
     "json-2-csv": "^5.5.1",
     "lodash": "^4.17.21",

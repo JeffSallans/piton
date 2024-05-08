@@ -1,0 +1,15 @@
+{
+    "scopeName": "piton-sql.script-injection",
+    "injectionSelector": "L:string.quoted.single.sql",
+    "patterns": [
+        {
+            "include": "#piton-file"
+        }
+    ],
+    "repository": {
+        "piton-file": {
+            "match": "pn-filePath",
+            "name": "keyword.piton-file"
+        }
+    }
+}

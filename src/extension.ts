@@ -28,8 +28,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	ExtensionSecretStorage.activate(context);
 
-	let completeItemDisposible = PitonLanguageClient.activate();
-	context.subscriptions.push(completeItemDisposible);
+	let languageDisposibles = PitonLanguageClient.activate();
+	for (const disposable of languageDisposibles) {
+		context.subscriptions.push(disposable);
+	}
 
 	let diagnosticDisposible = PitonLanguageClient.activateDiagnostic();
 	context.subscriptions.push(diagnosticDisposible);
