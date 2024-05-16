@@ -1,9 +1,12 @@
-import { FullOptions, search } from "fast-fuzzy";
+import { search } from "fast-fuzzy";
 import { filter, map } from "lodash";
 import { CompletionItem, CompletionList, Diagnostic, DiagnosticCollection, DiagnosticSeverity, Hover, ProviderResult, Range, Uri, languages } from "vscode";
 
+/** Used to manage language extension documentation shown to the user */
 export class PitonLanguageClient {
+    /** The state of all language reported errors in the PROBLEMS tab */
     public static diagnosticCollection: DiagnosticCollection;
+    /** Used to temporarly store the parsing data to do a bulk update at the end of parsing */
     public static diagnosticErrors: { filePath: string, range: Range, message: string }[] = [];
 
     /** Contains the metadata around the piton language */
@@ -121,31 +124,50 @@ from public.piton_test`
         }
     ];
 
+    /**
+     * Run at the start of parsing a file. Used to clear any previously reported diagnostic errors
+     * @param filePath The file and folder for the file parsed, used as an identifier
+     * @returns 
+     */
     public static clearDiagnosticErrors(filePath: string) {
         if (filePath === undefined) { return; }
         const errors = this.diagnosticErrors || [];
         this.diagnosticErrors = filter(errors, e => e.filePath !== filePath); 
     }
 
+    /**
+     * Report an error when parsing a file to show to the user
+     * @param filePath The file and folder for the file parsed, used as an identifier
+     * @param range The location of the error squiggly line
+     * @param message The message to display when hovering over the squiggly line and in the PROBLEMS tab
+     * @returns 
+     */
     public static addDiagnosticErrors(filePath: string, range: Range, message: string) {
         if (filePath === undefined) { return; }
         this.diagnosticErrors.push({ filePath, range, message });
     }
 
+    /**
+     * Run after parsing the file, re-renders all the parsing results reported by `addDiagnosticErrors()`
+     * @param filePath The file and folder for the file parsed, used as an identifier
+     * @returns 
+     */
     public static updateDiagnosticCollection(filePath: string) {
         if (filePath === undefined) { return; }
         const diagnostics = this.diagnosticErrors.filter(e => e.filePath === filePath).map(e => new Diagnostic(e.range, e.message, DiagnosticSeverity.Error));
         this.diagnosticCollection.set(Uri.parse(`file:${filePath}`), diagnostics);
     }
 
-    public static activateDiagnostic() {
-        PitonLanguageClient.diagnosticCollection = languages.createDiagnosticCollection('piton');
-        this.diagnosticCollection.clear();
-        return this.diagnosticCollection;
-    }
-
+    /** Run on extension activation. Returns a list of disposible to clean up when deactivating */
     public static activate() {
         let languageDisposible = [];
+
+        // Setup diagnostics
+        PitonLanguageClient.diagnosticCollection = languages.createDiagnosticCollection('piton');
+        this.diagnosticCollection.clear();
+        languageDisposible.push(this.diagnosticCollection);
+
+        // Setup hover
         languageDisposible.push(
             languages.registerHoverProvider({language: 'sql'}, {
                 provideHover(document, position, token): ProviderResult<Hover> {
@@ -165,6 +187,7 @@ from public.piton_test`
             })
         );
 
+        // Setup autocomplete
         languageDisposible.push(languages.registerCompletionItemProvider({language: 'sql'}, {
             provideCompletionItems(document, position, token, context): ProviderResult<CompletionItem[] | CompletionList<CompletionItem>> {
                 return PitonLanguageClient.languageInfo;

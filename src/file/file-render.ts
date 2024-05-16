@@ -2,32 +2,40 @@
 
 import { Position, Range, TextDocument, TextEditor } from "vscode";
 import * as fs from 'fs';
-import { get, isNull } from "lodash";
+import { Dictionary, filter, flatten, get, isNull, map, values } from "lodash";
 import { json2csv } from "json-2-csv";
 
 import { PitonFile } from "../models/PitonFile";
 import { PitonFileResult } from "../models/PitonFileResult";
+import path from "path";
 
-export async function updateFile(editor: TextEditor, file: PitonFile, fileResult: PitonFileResult) {
-    /*
-    // 1. Update File Content
-    const resultRegex = /\s*?\-\-\s+?pn\-result\s(.*?)\s*?\r?\n/gi;
-    const word = editor.document.getWordRangeAtPosition(new Position(0, 0), resultRegex) || new Range(0, 0, 0, 0);
-
-    if (word.start.line === 0 && word.start.character === 0 && word.end.line === 0 && word.end.character === 0) { return; }
-
-    editor.edit(editBuilder => {
-        editBuilder.replace(word, get(file, 'parts[1].filePartResult?.result', 'Fail'));
+/**
+ * Creates or updates result.piton.csv which contains all details of the run results
+ * @param editor 
+ * @param files 
+ * @param fileResults 
+ */
+export async function updateTotalResults(workspaceRoot: string, fileResults: Dictionary<PitonFileResult | null>) {
+    const fileResultsFlattened = map(flatten(map(values(fileResults), (r) => r?.filePartResults)), (r) => {
+        return {
+            name: r?.parsedPart.name,
+            result: r?.result,
+            resultSummary: r?.resultMessage,
+            count: r?.resultData.length,
+            errorCount: filter(r?.resultData, (d: any) => d.approved !== '1').length,
+        };
     });
-    */
+    createCSVFile(path.join(workspaceRoot, 'result.piton.csv'), fileResultsFlattened);
+}
 
-    // 2. Update File Explorer
-    // Done
-
-    // 3. Red Underline Failed comments
-    // TODO
-
-    // 4. Create Exception file
+/**
+ * Creates or updates the exception .piton.sql.csv files for all the check results from the given Piton file
+ * @param editor 
+ * @param file 
+ * @param fileResult 
+ */
+export async function updateFile(editor: TextEditor, file: PitonFile, fileResult: PitonFileResult) {
+    // Create Exception file
     for (const p of file.parts) {
         const result = fileResult.filePartResults[p.order];
         if (result !== undefined && result.resultData.length > 0) {

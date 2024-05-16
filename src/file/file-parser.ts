@@ -6,6 +6,12 @@ import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogge
 import { PitonLanguageClient } from "../language/PitonLanguageClient";
 import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecretStorage";
 
+/**
+ * Parse the Piton info from a given file
+ * @param file 
+ * @param promptPassword 
+ * @returns 
+ */
 export async function getFileFromDoc(file: TextDocument, promptPassword: (user: string) => Promise<string>): Promise<PitonFile> {
     const text = file.getText();
     const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
@@ -13,7 +19,14 @@ export async function getFileFromDoc(file: TextDocument, promptPassword: (user: 
     return await getFile(`${results[1]}${results[2]}`, results[3], text, promptPassword);
 }
 
-/** Returns */
+/**
+ * Parse the Piton info from a given file
+ * @param filePath 
+ * @param fileName 
+ * @param text 
+ * @param promptPassword 
+ * @returns 
+ */
 export async function getFile(filePath: string, fileName: string, text: string, promptPassword: (user: string) => Promise<string>): Promise<PitonFile> {
     // Clear diagnostics for the file
     const filePathAndName = `${filePath}${fileName}`;
@@ -167,6 +180,12 @@ function parseCheckQuery(filePart: string): string {
     return query;
 }
 
+/**
+ * Return a line number for the given data
+ * @param str A file string
+ * @param re The regex
+ * @returns 
+ */
 function getLineNumber(str: string, re: RegExp) {
     return str.split(/\n/).map(function (line, i) {
         if (re.test(line)) {

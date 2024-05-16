@@ -19,29 +19,27 @@ import { ExtensionSecretStorage } from './logging-and-debugging/ExtensionSecretS
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-    //Create output channel
-    //let pitonLog = vscode.window.createOutputChannel("piton");
-
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "piton" is now active!');
 
+	// Setup secret store for database passwords
 	ExtensionSecretStorage.activate(context);
 
+	// Setup Piton autocomplete, diagnostic, and hover info
 	let languageDisposibles = PitonLanguageClient.activate();
 	for (const disposable of languageDisposibles) {
 		context.subscriptions.push(disposable);
 	}
 
-	let diagnosticDisposible = PitonLanguageClient.activateDiagnostic();
-	context.subscriptions.push(diagnosticDisposible);
-
+	// Root path will be referenced later to help with parsing files and used in pn-filePath
 	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
 		? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
 
+	// Do an initial parse to get an accurate state of things when activating the extension
 	parseAllFiles(rootPath, promptPassword);
 
-	// Samples of `window.registerTreeDataProvider`
+	// Registers the main test result tree view
 	const testTreeDataProvider = new TestTreeDataProvider(rootPath);
 	vscode.window.registerTreeDataProvider('pitonFiles', testTreeDataProvider);
 
@@ -195,7 +193,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (editor) {
             let document = editor.document;
-
 			updatePassword(editor, promptPassword);
         }
     });
@@ -233,6 +230,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(onSaveDisposible);
 }
 
+/** Passed into the business logic functions to call this vscode utility when needed */
 async function promptPassword(user: string): Promise<string> {
 	const result = await vscode.window.showInputBox({
 		title: `Password for ${user}`,

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { PitonFile } from "../models/PitonFile";
 import { getFile, getFileFromDoc } from "./file-parser";
 import { runFile } from "./file-runner";
-import { updateFile } from "./file-render";
+import { updateFile, updateTotalResults } from "./file-render";
 import { Dictionary, ceil, floor, forEach, keyBy, keys, map, values } from "lodash";
 import { glob } from "glob";
 import path from "path";
@@ -46,6 +46,11 @@ export function getFileResultByName(fileAndFolderName: string): PitonFileResult 
     return fileResultData[fileName] || null;
 }
 
+/**
+ * Parse the current open file into a PitonFile
+ * @param editor 
+ * @returns 
+ */
 export function getActiveFile(editor: TextEditor | undefined): PitonFile | null {
     if (editor === undefined) { return null; }
 
@@ -63,11 +68,9 @@ export function getResultSummary() {
 
 /** Parse */
 export async function parseActiveFile(file: TextDocument, promptPassword: (user: string) => Promise<string>) {
-    // 1. Parse test1.xq.sql
+    // 1. Parse test1.piton.sql
     const activeFileData = await getFileFromDoc(file, promptPassword);
     fileData[activeFileData.name] = activeFileData;
-
-    // 2. Parse test1.except.csv file
 }
 
 /** Run */
@@ -87,16 +90,15 @@ export async function runActiveFile(editor: TextEditor | undefined) {
 /** Render Results */
 export async function renderResults(editor: TextEditor | undefined) {
     if (editor === undefined) { return; }
-    // 1. Update File Content
+    // 1. Create/Update Result File
+    updateTotalResults('./', fileResultData);
+
+    // 2. Create Exception file
     const files = values(fileResultData);
 
     for (const f of files) {
         await updateFile(editor, f.parsedFile, f);
     }
-
-    // 2. Update File Explorer
-    // 3. Red Underline Failed comments
-    // 4. Create Exception file
 }
 
 /** Confirm Exceptions */
@@ -146,6 +148,12 @@ export async function runAllFiles(workspaceRoot: string, progress: Progress<{mes
     }
 }
 
+/**
+ * Return all PitonFiles under workspaceRoot
+ * @param workspaceRoot 
+ * @param promptPassword 
+ * @returns 
+ */
 export async function getTests(workspaceRoot: string, promptPassword: (user: string) => Promise<string>): Promise<Dictionary<PitonFile | null>> {
     if (workspaceRoot === undefined) { return {}; }
 
