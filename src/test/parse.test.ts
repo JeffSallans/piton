@@ -9,7 +9,7 @@ import { PitonLanguageClient } from '../language/PitonLanguageClient';
 
 suite('File Parsing Test Suite', () => {
 
-	test('Sample Postgres File', async () => {
+	test('Simple Postgres File', async () => {
 
 		ExtensionSecretStorage.mockActivate();
 		PitonLanguageClient.activate();
@@ -36,5 +36,38 @@ where name is null or name = ''
 		assert.equal(result.sqlDialect, 'postgres');
 		assert.equal(result.connectionString, 'postgres://dbt_user:pn-password@localhost:5432/dbt_example');
 		assert.equal(result.parts.length, 2);
+	});
+
+	test('Full Postgres File', async () => {
+
+		ExtensionSecretStorage.mockActivate();
+		PitonLanguageClient.activate();
+
+		const result = await getFile('fake-path', 'example2.piton.sql', `
+-- pn-connectionString postgres://dbt_user:pn-password@localhost:5432/dbt_example
+-- pn-sqlDialect postgres
+
+-- pn-count
+-- test
+select * -- Explaination
+from public.piton_test
+-- WHERE
+
+-- pn-check
+-- pn-name null check
+-- pn-tag completeness
+-- pn-id-col id
+select *
+from public.piton_test
+where name is null or name = ''
+
+		`, () => { return Promise.resolve(''); });
+
+		assert.equal(result.parts.length, 2);		
+		assert.equal(result.parts[1].name, 'null check');
+		assert.equal(result.parts[1].tag, 'completeness');
+		assert.equal(result.parts[1].idColumn, 'id');
+		assert.equal(result.parts[1].approveColumn, 'approved');
+
 	});
 });

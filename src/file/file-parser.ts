@@ -110,6 +110,9 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
     const approveColumnRegex = /\s*?\-\-\s+?pn\-approve-col\s(.*?)\s*?\r?\n/gi;
     const approveColumn = (approveColumnRegex.exec(filePart) || [])[1];
 
+    const tagColumnRegex = /\s*?\-\-\s+?pn\-tag\s(.*?)\s*?\r?\n/gi;
+    const tagColumn = (tagColumnRegex.exec(filePart) || [])[1];
+
     const expectRegex = /\s*?\-\-\s+?pn\-expect\s(.*?)\s*?\r?\n/gi;
     const expect = (expectRegex.exec(filePart) || [])[1];
     const expectColumnRegex = /\s*?\-\-\s+?pn\-expectColumn\s(.*?)\s*?\r?\n/gi;
@@ -141,7 +144,9 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
         rawText: filePart,
         order,
         range: new Range(line, 0, line, 0),
+        fileName: filePathAndName.replace(filePath, ''),
         name,
+        tag: tagColumn,
         skip: false,
 
         type: (!!isTypeCheck && isCheckParamsValid) ? 'Check' : 'Other',

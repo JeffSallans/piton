@@ -121,6 +121,26 @@ from public.piton_test`
             documentation: `Example:
 -- pn-sqlDialect
 -- pn-skip`
+        },
+        {
+            label: 'pn-tag',
+            insertText: 'pn-tag',
+            detail: 'A word to help group results',
+            documentation: `Example:
+\`\`\`sql
+-- pn-check
+-- pn-name null check
+-- pn-tag completeness
+-- pn-id-col id
+select *
+from public.piton_test
+where name is null or name = ''
+\`\`\`
+
+Result Summary:
+file                name        tag             result      count   num_errors  num_to_review
+sample.piton.sql    null check  completeness    Failed      5       1           2
+`
         }
     ];
 

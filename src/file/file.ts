@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { PitonFile } from "../models/PitonFile";
 import { getFile, getFileFromDoc } from "./file-parser";
 import { runFile } from "./file-runner";
-import { updateFile, updateTotalResults } from "./file-render";
+import { getResultSummary, updateFileResults, updateResultsSummary } from "./file-render";
 import { Dictionary, ceil, floor, forEach, keyBy, keys, map, values } from "lodash";
 import { glob } from "glob";
 import path from "path";
@@ -11,6 +11,7 @@ import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
 import { PitonLanguageClient } from "../language/PitonLanguageClient";
 import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecretStorage";
+import { PitonResultSummary } from "../models/PitonResultSummary";
 
 /** The parsed files data */
 let fileData: Dictionary<PitonFile | null>;
@@ -47,7 +48,7 @@ export function getFileResultByName(fileAndFolderName: string): PitonFileResult 
 }
 
 /**
- * Parse the current open file into a PitonFile
+ * Parse the current open file into a Piton
  * @param editor 
  * @returns 
  */
@@ -62,8 +63,8 @@ export function getActiveFile(editor: TextEditor | undefined): PitonFile | null 
 }
 
 /** Return the piton result file for the give file name */
-export function getResultSummary() {
-
+export function getPitonResultSummary(): PitonResultSummary[] {
+    return getResultSummary(fileResultData);
 }
 
 /** Parse */
@@ -88,16 +89,16 @@ export async function runActiveFile(editor: TextEditor | undefined) {
 
 
 /** Render Results */
-export async function renderResults(editor: TextEditor | undefined) {
+export async function renderResults(workspaceRoot: string, editor: TextEditor | undefined) {
     if (editor === undefined) { return; }
     // 1. Create/Update Result File
-    updateTotalResults('./', fileResultData);
+    updateResultsSummary(workspaceRoot, fileResultData);
 
     // 2. Create Exception file
     const files = values(fileResultData);
 
     for (const f of files) {
-        await updateFile(editor, f.parsedFile, f);
+        await updateFileResults(editor, f.parsedFile, f);
     }
 }
 

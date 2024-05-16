@@ -1,4 +1,4 @@
-import { filter, keyBy, map, set, get, some, keys, every } from "lodash";
+import { filter, keyBy, map, set, get, some, keys, every, sum } from "lodash";
 import * as fs from 'fs';
 import dayjs from "dayjs";
 import { csv2json } from "json-2-csv";
@@ -89,8 +89,10 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
             OutputChannelLogger.error(`====== PREV CSV PARSE ERROR ======\n${e?.stack || e}`, true);
         }
 
-        let result = 'Fail';
+        let result = 'No Run';
         let resultData = [];
+        let toBeReviewedCount = 0;
+        let errorCount = 0;
         try {
             OutputChannelLogger.log(`====== QUERY =======\n${part.sanitizedQuery}`);
             resultData = await sql.querySQL(part.sanitizedQuery);
@@ -104,8 +106,15 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
         mergeResultWithPrevious(resultData, part.idColumn, part.approveColumn, prevPartResultFile);
 
         if (part.expect === 'no_results') {
-            const failedRows = resultData.filter(r => get(r, part.approveColumn, 0) !== 1).length; 
-            result = (failedRows === 0) ? 'Pass' : 'Fail';
+            toBeReviewedCount = resultData.filter(r => get(r, part.approveColumn, '') === '').length; 
+            errorCount = resultData.filter(r => get(r, part.approveColumn, 0) !== 1).length; 
+            if (toBeReviewedCount === 0 && errorCount === 0) {
+                result = 'Pass';
+            } else if (toBeReviewedCount > 0) {
+                result = 'To Review';
+            } else {
+                result = 'Fail';
+            }
         }
 
         filePartResults.push({
@@ -118,14 +127,23 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
             resultMessage: '',
             resultFilePath: csvResultPath,
             exceptions: '',
-            allExceptions: [],
-            confirmedExceptions: []
+            errorCount,
+            toBeReviewedCount
         });
     }
 
     const checks = filter(file.parts, p => p.type === 'Check');
-    const errorCount = filter(filePartResults, p => p.result === 'Fail').length;
-    const result = (errorCount === 0) ? 'Pass' : 'Fail';
+    const errorCount = sum(map(filePartResults, p => p.errorCount));
+    const toBeReviewedCount = sum(map(filePartResults, p => p.toBeReviewedCount));
+
+    let result = 'No Run';
+    if (toBeReviewedCount === 0 && errorCount === 0) {
+        result = 'Pass';
+    } else if (toBeReviewedCount > 0) {
+        result = 'To Review';
+    } else {
+        result = 'Fail';
+    }
     const resultSummary = `${checks.length - errorCount}/${checks.length} checks passed for ${count} records`;
 
     try {

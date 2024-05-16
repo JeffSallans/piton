@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 
 			// Render
-			renderResults(vscode.window.activeTextEditor);
+			renderResults(rootPath, vscode.window.activeTextEditor);
         }
     });
 	context.subscriptions.push(fileContentsDisposable);
@@ -111,7 +111,7 @@ export function activate(context: vscode.ExtensionContext) {
 			progress.report({ increment: 80 });
 
 			// Render
-			renderResults(vscode.window.activeTextEditor);
+			renderResults(rootPath, vscode.window.activeTextEditor);
 			testTreeDataProvider.refresh();
 		
 			await Promise.resolve();
@@ -128,7 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
 		await parseAllFiles(rootPath, promptPassword);
 
 		// Render
-		renderResults(vscode.window.activeTextEditor);
+		renderResults(rootPath, vscode.window.activeTextEditor);
 		testTreeDataProvider.refresh();
 	});
 	context.subscriptions.push(parseAllDisposable);
@@ -155,7 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
 			await runAllFiles(rootPath, progress, cancelilation, promptPassword);
 
 			// Render
-			renderResults(vscode.window.activeTextEditor);
+			renderResults(rootPath, vscode.window.activeTextEditor);
 			testTreeDataProvider.refresh();
 
 			await Promise.resolve();
@@ -181,7 +181,7 @@ export function activate(context: vscode.ExtensionContext) {
 		confirmExceptions();
 
 		// Render
-		renderResults(vscode.window.activeTextEditor);
+		renderResults(rootPath, vscode.window.activeTextEditor);
 	});
 	context.subscriptions.push(exceptionDisposable);
 
