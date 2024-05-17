@@ -2,7 +2,7 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "0.7.2",
+  "version": "0.8.1",
   "icon": "./resources/pitons.png",
   "repository": {
     "url": "https://github.com/JeffSallans/piton"
@@ -114,6 +114,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
+    "vscode:package": "vsce package",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
@@ -145,6 +146,8 @@
     "mssql": "^10.0.2",
     "oracledb": "^6.4.0",
     "pg": "^8.11.5",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "vscode-textmate": "^9.0.0"
   }
 }

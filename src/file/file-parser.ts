@@ -5,6 +5,7 @@ import { PitonFilePart } from "../models/PitonFilePart";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
 import { PitonLanguageClient } from "../language/PitonLanguageClient";
 import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecretStorage";
+import exp from "constants";
 
 /**
  * Parse the Piton info from a given file
@@ -49,7 +50,7 @@ export async function getFile(filePath: string, fileName: string, text: string, 
         PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), 'missing pn-sqlDialect');
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-sqlDialect \n${text}`, true);
     }
-    const validDialects = ['postgres', 'duckdb'];
+    const validDialects = ['postgres', 'duckdb', 'sqlite', 'oracle'];
     if (!validDialects.includes(sqlDialect)) {
         PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), `invalid pn-sqlDialect given ${sqlDialect} expecting one of ${validDialects.concat(', ')}`);
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\n invalid pn-sqlDialect given ${sqlDialect} expecting one of ${validDialects.concat(', ')} \n${text}`, true);
@@ -114,11 +115,7 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
     const tagColumn = (tagColumnRegex.exec(filePart) || [])[1];
 
     const expectRegex = /\s*?\-\-\s+?pn\-expect\s(.*?)\s*?\r?\n/gi;
-    const expect = (expectRegex.exec(filePart) || [])[1];
-    const expectColumnRegex = /\s*?\-\-\s+?pn\-expectColumn\s(.*?)\s*?\r?\n/gi;
-    const expectColumn = (expectColumnRegex.exec(filePart) || [])[1];
-    const expectColumnValueRegex = /\s*?\-\-\s+?pn\-expectColumnValue\s(.*?)\s*?\r?\n/gi;
-    const expectColumnValue = (expectColumnValueRegex.exec(filePart) || [])[1];
+    const expect = (expectRegex.exec(filePart) || [])[1] || 'no_results';
 
     let sanitizedQuery = parseCheckQuery(filePart);
     if (!!sanitizedQuery) {
@@ -139,6 +136,11 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
         PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(line, 0, line, 100), 'missing SELECT for pn-check');
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing SELECT for pn-check #${order}\n${filePart}`, true);
     }
+    const validExpectOptions = ['no_results', 'snapshot'];
+    if (!!isTypeCheck && !validExpectOptions.includes(expect)) {
+        PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(line, 0, line, 100), `invalid pn-expect given ${expect} expecting one of ${validExpectOptions.concat(', ')}`);
+        OutputChannelLogger.error(`====== SYNTAX ERROR ======\n invalid pn-expect given ${expect} expecting one of ${validExpectOptions.concat(', ')}`, true);
+    }
 
     return {
         rawText: filePart,
@@ -153,9 +155,7 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
         idColumn,
         approveColumn: approveColumn || 'approved',
         
-        expect: 'no_results',
-        expectColumn,
-        expectColumnValue,
+        expect,
         sanitizedQuery,
     };
 }

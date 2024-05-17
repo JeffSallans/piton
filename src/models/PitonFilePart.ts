@@ -40,10 +40,6 @@ export interface PitonFilePart {
     /** A word to help group results */
     tag: string;
 
-    /** NOT IMPLEMENTED Can be no_result, column_to_equal, or result_matches_snapshot */
+    /** Can be no_results or snapshot */
     expect: string;
-    /** NOT IMPLEMENTED Name of the column returned to check for equality */
-    expectColumn: string;
-    /** NOT IMPLEMENTED What to compare that the column value is. Defaults to pass. */
-    expectColumnValue: string;
 }

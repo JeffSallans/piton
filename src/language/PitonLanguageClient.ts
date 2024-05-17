@@ -70,6 +70,30 @@ id  name    approved
 `
         },
         {
+            label: 'pn-expect',
+            insertText: 'pn-expect',
+            detail: 'The type of check to perform on the query',
+            documentation: `Param: (optional) string - One of the following expect options. Defaults to no_results.
+
+Option:
+no_results - Will check if no results are return, exceptions go into the .csv
+snapshot - Will check if the return query matches exactly to the .csv currently stored
+
+Example:
+-- pn-check
+-- pn-id-col id
+-- pn-expect no_results
+select *
+from public.piton_test
+where name is null or name = ''
+
+Result:
+id  name    approved
+1   Jeff    1
+2           0
+`
+        },
+        {
             label: 'pn-connectionString',
             insertText: 'pn-connectionString',
             detail: 'Defines the connection string to use',
@@ -97,9 +121,9 @@ Example:
             detail: 'Defines the SQL driver to use for the given file',
             documentation: `Options: 
 * postgres
-* sqlServer
 * oracle
 * duckdb
+* sqlite
 * file://...
 
 Example:

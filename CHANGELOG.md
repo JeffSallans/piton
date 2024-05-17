@@ -1,6 +1,18 @@
 # Change Log
 
-All notable changes to the "infusion-xq" extension will be documented in this file.
+Feature and bugfixes for each release.
+
+### 0.8.0
+
+* Added a result.piton.csv to summarize the results
+* Improved the sidebar to show more result data
+* Added oracledb to sql dialects
+* Added sqlite to sql dialects
+* Added on hover hints for piton logic
+
+### 0.7.0
+
+Ready to review by co-workers
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 

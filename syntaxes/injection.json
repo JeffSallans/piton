@@ -30,6 +30,9 @@
             "include": "#piton-approve-col"
         },
         {
+            "include": "#piton-expect"
+        },
+        {
             "include": "#piton-tag"
         }
     ],
@@ -69,6 +72,10 @@
         "piton-approve-col": {
             "match": "pn-approve-col",
             "name": "keyword.piton-approve-col"
+        },
+        "piton-expect": {
+            "match": "pn-expect",
+            "name": "keyword.piton-expect"
         },
         "piton-tag": {
             "match": "pn-tag",

@@ -12,6 +12,7 @@ import { PitonResultCodeLensProvider } from './codelens/results-codelens';
 import { PitonLanguageClient } from './language/PitonLanguageClient';
 import postgres from './sql-dialects/postgres';
 import duckdb from './sql-dialects/duckdb';
+import sqllite from './sql-dialects/sqlite';
 import { OutputChannelLogger } from './logging-and-debugging/OutputChannelLogger';
 import { ExtensionSecretStorage } from './logging-and-debugging/ExtensionSecretStorage';
 
@@ -146,6 +147,7 @@ export function activate(context: vscode.ExtensionContext) {
 			  OutputChannelLogger.log('====== DB Connections Cancelled ======');
 			  postgres.closeConnection();
 			  duckdb.closeConnection();
+			  sqllite.closeConnection();
 			  return;
 			});
 

@@ -4,7 +4,7 @@ Piton is a portable SQL testing VS Code Extension. The goal is to be an easy to 
 
 ## Installation
 
-1. Download and install Piton from the [marketplace]()
+1. Download and install Piton from the [marketplace](https://marketplace.visualstudio.com/items?itemName=JeffSallans.piton)
 
 1. Click the Piton icon on the sidebar
 
@@ -44,14 +44,12 @@ where name is null or name = ''
 
 There are more formal SQL testing frameworks that requires a lot of developer setup and assistance. The goal of this tool is to be lightweight and something a QA can add to their tool kit. Similar to show Postman is help QAs even when Swagger is used.
 
-## Technology
+## Supported SQL
 
 * [pg](https://www.npmjs.com/package/pg)
 * [duckdb](https://www.npmjs.com/package/duckdb)
-* [lodash](https://www.npmjs.com/package/lodash)
-* [dayjs](https://www.npmjs.com/package/dayjs)
-* [json-2-csv](https://www.npmjs.com/package/json-2-csv)
-* [vscode-extension](https://github.com/Microsoft/vscode-generator-code)
+* [sqlite](https://www.npmjs.com/package/sqlite)
+* [oracle](https://www.npmjs.com/package/oracledb)
 
 ## Architecture
 
@@ -67,11 +65,21 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 
 ## Known Issues
 
-* Sometimes the Codelense will not be clickable until a file is closed and re-opened
+* duckdb overrides any approved values set in the .csv because of an ID issue
+* the output will show bad parsing of the active file even if it is not .piton.sql type
+* the run button does not disable if the job is running already
 
 ## Release Notes
 
 Feature and bugfixes for each release.
+
+### 0.8.0
+
+* Added a result.piton.csv to summarize the results
+* Improved the sidebar to show more result data
+* Added oracledb to sql dialects
+* Added sqlite to sql dialects
+* Added on hover hints for piton logic
 
 ### 0.7.0
 

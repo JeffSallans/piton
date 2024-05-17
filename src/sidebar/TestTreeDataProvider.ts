@@ -23,7 +23,7 @@ export class TestTreeDataProvider implements vscode.TreeDataProvider<PitonSummar
 		return element;
 	}
 
-	getChildren(element?: PitonSummaryItem | PitonTestItem | PitonTestPartItem): Thenable<PitonSummaryItem[] | PitonTestItem[] | PitonTestPartItem[]> {
+	async getChildren(element?: PitonSummaryItem | PitonTestItem | PitonTestPartItem): Promise<PitonSummaryItem[] | PitonTestItem[] | PitonTestPartItem[]> {
 		if (!this.workspaceRoot) {
 			vscode.window.showInformationMessage('No PitonTestItem in empty workspace');
 			return Promise.resolve([]);
@@ -31,6 +31,13 @@ export class TestTreeDataProvider implements vscode.TreeDataProvider<PitonSummar
 
 		// Parent
 		if (!element) {
+
+			// Don't show any items if no piton file exist
+			const pitonTestItems = await this.getPitonTestItems();
+			if (pitonTestItems.length === 0) {
+				return Promise.resolve([]);
+			}
+
 			const pitonResultSummary = getPitonResultSummary();
 			return Promise.resolve([new PitonSummaryItem(pitonResultSummary)]);
 		}
