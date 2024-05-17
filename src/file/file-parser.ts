@@ -33,9 +33,9 @@ export async function getFile(filePath: string, fileName: string, text: string, 
     const filePathAndName = `${filePath}${fileName}`;
     PitonLanguageClient.clearDiagnosticErrors(filePathAndName);
 
-    // File level params
+    // ===== Parse File level params =====
     const connectionStringRegex = /\s*?\-\-\s+?pn\-connectionString\s(.*?)\s*?\r?\n/gi;
-    const connectionString = (connectionStringRegex.exec(text) || [])[1];
+    let connectionString = (connectionStringRegex.exec(text) || [])[1];
     const connectionUserRegex = /\s*?\-\-\s+?pn\-connectionUser\s(.*?)\s*?\r?\n/gi;
     const connectionUser = (connectionUserRegex.exec(text) || [])[1];
 
@@ -45,16 +45,30 @@ export async function getFile(filePath: string, fileName: string, text: string, 
     const sqlDialect = (sqlDialectRegex.exec(text) || [])[1];
     const skipRegex = /\s*?\-\-\s+?(pn\-skip)\s(.*?)\s*?\r?\n/gi;
     const skip = (skipRegex.exec(text) || [])[1];
-    
+
+    // ===== Enrich Data ====
+
+    // Add pn-filePath to connection string if it exists
+    if (!!connectionString) {
+        connectionString = connectionString.replace('pn-filePath', filePath);
+    }
+
+    // ===== Validations =====
+
+    // Check if dialect is set
     if (!sqlDialect) {
         PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), 'missing pn-sqlDialect');
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-sqlDialect \n${text}`, true);
     }
+
+    // Check valid dialects
     const validDialects = ['postgres', 'duckdb', 'sqlite', 'oracle'];
     if (!validDialects.includes(sqlDialect)) {
         PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), `invalid pn-sqlDialect given ${sqlDialect} expecting one of ${validDialects.concat(', ')}`);
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\n invalid pn-sqlDialect given ${sqlDialect} expecting one of ${validDialects.concat(', ')} \n${text}`, true);
     }
+
+    // Every dialet besides duckdb needs a connection string
     if (sqlDialect !== 'duckdb' && !connectionString) { 
         PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), 'missing pn-connectionString');
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\nmissing pn-connectionString \n${text}`, true);

@@ -165,6 +165,32 @@ Result Summary:
 file                name        tag             result      count   num_errors  num_to_review
 sample.piton.sql    null check  completeness    Failed      5       1           2
 `
+        },
+        {
+            label: 'pn-filePath',
+            insertText: 'pn-filePath',
+            detail: 'Placeholder to be replaced by the relative path to the current file',
+            documentation: `pn-filePath only work for queries and pn-connectionString.
+
+If you are working with the following files: 
+* C:/user/jsallans/workspace/test.piton.sql
+* C:/user/jsallans/workspace/data.csv
+* C:/user/jsallans/workspace/sqlite-data.db
+
+The following code will be changed at run time:
+
+Example:
+\`\`\`sql
+-- pn-connectionString pn-filePath/sqlite-data.db
+-- pn-sqlDialect sqlite
+\`\`\`
+
+Result:
+\`\`\`sql
+-- pn-connectionString C:/user/jsallans/workspace/sqlite-data.db
+-- pn-sqlDialect sqlite
+\`\`\`
+`
         }
     ];
 

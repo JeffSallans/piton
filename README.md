@@ -73,6 +73,10 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 
 Feature and bugfixes for each release.
 
+### 0.8.2
+
+* fixed sqlite connection issue
+
 ### 0.8.0
 
 * Added a result.piton.csv to summarize the results

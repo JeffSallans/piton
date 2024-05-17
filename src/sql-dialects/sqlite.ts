@@ -7,7 +7,7 @@ let client: Database<sqlite3.Database, sqlite3.Statement> | null = null;
 const toExport: SqlDialectAdapter = {
     setupConnection: async function(connectionString) {
         client = await open({
-            driver: '',
+            driver: sqlite3.Database,
             filename: connectionString
         });
         return;
@@ -20,8 +20,8 @@ const toExport: SqlDialectAdapter = {
         if (client === null) { await console.log('FAILED'); return 0;}
 
         try {
-            const res = await client.get(query);
-            return res.rowCount;
+            const res = await client.all(query);
+            return res.length;
         }
         catch (e) {
             console.log(e);
@@ -33,8 +33,8 @@ const toExport: SqlDialectAdapter = {
         if (client === null) { await console.log('FAILED'); return [];}
 
         try {
-            const res = await client.get(query);
-            return res.rows;
+            const res = await client.all(query);
+            return res;
         }
         catch (e) {
             console.log(e);
