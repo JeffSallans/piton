@@ -70,4 +70,78 @@ where name is null or name = ''
 		assert.equal(result.parts[1].approveColumn, 'approved');
 
 	});
+
+	test('Full Sqlite File', async () => {
+
+		ExtensionSecretStorage.mockActivate();
+		PitonLanguageClient.activate();
+
+		const result = await getFile('fake-path', 'test-sqlite.piton.sql', `
+-- pn-connectionString pn-filePath/../../resources/piton-example/sqlite-example.db
+-- pn-sqlDialect sqlite
+
+-- pn-count
+select *
+from Studio_Ghibli
+
+-- pn-check
+-- pn-name valid name
+-- pn-id-col Name
+select *
+from Studio_Ghibli
+where Name like '%ä%'
+
+
+-- pn-check
+-- pn-name screenplay populated
+-- pn-id-col Name
+select *
+from Studio_Ghibli
+where Screenplay is null
+
+
+		`, () => { return Promise.resolve(''); });
+
+		assert.equal(result.parts.length, 3);		
+		assert.equal(result.parts[1].name, 'valid name');
+		assert.equal(result.parts[1].sanitizedQuery, `select *
+from Studio_Ghibli
+where Name like '%ä%'`);
+		assert.equal(result.parts[2].name, 'screenplay populated');
+		assert.equal(result.parts[2].sanitizedQuery, `select *
+from Studio_Ghibli
+where Screenplay is null`);
+	});
+
+	test('Unusual Queries File', async () => {
+
+		ExtensionSecretStorage.mockActivate();
+		PitonLanguageClient.activate();
+
+		const result = await getFile('fake-path', 'test-sqlite.piton.sql', `
+-- pn-connectionString pn-filePath/../../resources/piton-example/sqlite-example.db
+-- pn-sqlDialect sqlite
+
+-- pn-count
+select *
+from Studio_Ghibli
+
+-- pn-check
+-- pn-name valid name
+-- pn-id-col Name
+select *
+   from Studio_Ghibli
+	where Name like '%ä%'
+
+
+
+		`, () => { return Promise.resolve(''); });
+
+		assert.equal(result.parts.length, 2);		
+		assert.equal(result.parts[1].name, 'valid name');
+		assert.equal(result.parts[1].sanitizedQuery, `select *
+   from Studio_Ghibli
+	where Name like '%ä%'`);
+	});
+
 });

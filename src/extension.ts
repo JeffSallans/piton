@@ -44,18 +44,8 @@ export function activate(context: vscode.ExtensionContext) {
 	const testTreeDataProvider = new TestTreeDataProvider(rootPath);
 	vscode.window.registerTreeDataProvider('pitonFiles', testTreeDataProvider);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('piton.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Piton!');
-	});
-	context.subscriptions.push(disposable);
-
 	const fileContentsDisposable = vscode.commands.registerCommand('piton.scanDocument', function () {
-		vscode.window.showInformationMessage('Parsing file');
+		OutputChannelLogger.log('Parsing file');
 
 		// Get the active text editor
         const editor = vscode.window.activeTextEditor;
@@ -81,17 +71,17 @@ export function activate(context: vscode.ExtensionContext) {
 	const runDisposable = vscode.commands.registerCommand('piton.runFile', async () => {
 		vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
-			cancellable: false,
+			cancellable: true,
 			title: 'Running Piton File'
-		}, async (progress) => {
+		}, async (progress, cancelilation) => {
 			
-			progress.report({  increment: 0 });
+			cancelilation.onCancellationRequested(cancelConnections);
 
+			progress.report({  increment: 0 });
 			const editor = vscode.window.activeTextEditor;
 
 			if (editor) {
 				let document = editor.document;
-
 				// PARSE
 				parseActiveFile(document, promptPassword);
 			}
@@ -141,15 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
 			title: 'Running Piton File'
 		}, async (progress, cancelilation) => {
 			
-			cancelilation.onCancellationRequested(() => {
-	  
-			  vscode.window.showInformationMessage("DB Connections Cancelled");
-			  OutputChannelLogger.log('====== DB Connections Cancelled ======');
-			  postgres.closeConnection();
-			  duckdb.closeConnection();
-			  sqllite.closeConnection();
-			  return;
-			});
+			cancelilation.onCancellationRequested(cancelConnections);
 
 			progress.report({  increment: 0 });
 		
@@ -188,7 +170,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(exceptionDisposable);
 
 	const updatePasswordDisposable = vscode.commands.registerCommand('piton.updatePassword', function () {
-		vscode.window.showInformationMessage('Updating Password');
+		vscode.window.showInformationMessage('Updated Password');
 
 		// Get the active text editor
         const editor = vscode.window.activeTextEditor;
@@ -230,6 +212,16 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 	context.subscriptions.push(onSaveDisposible);
+}
+
+/** Used to clean up the SQL connections */
+async function cancelConnections() {
+	vscode.window.showInformationMessage("DB Connections Cancelled");
+	OutputChannelLogger.log('====== DB Connections Cancelled ======');
+	postgres.closeConnection();
+	duckdb.closeConnection();
+	sqllite.closeConnection();
+	return;
 }
 
 /** Passed into the business logic functions to call this vscode utility when needed */

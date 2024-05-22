@@ -73,6 +73,12 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 
 Feature and bugfixes for each release.
 
+### 0.8.3
+
+* Significantly reduced vsix size
+* Refactored query parsing to handle more types of queries
+* Cleaning up memory usage after run
+
 ### 0.8.2
 
 * fixed sqlite connection issue

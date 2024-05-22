@@ -1,5 +1,5 @@
 import { Range, TextDocument, SecretStorage } from "vscode";
-import { map, first, range, includes } from 'lodash';
+import { map, first, range, includes, trimEnd } from 'lodash';
 import { PitonFile } from "../models/PitonFile";
 import { PitonFilePart } from "../models/PitonFilePart";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
@@ -178,8 +178,10 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
  * Returns the SQL query 
  */
 function parseCountQuery(filePart: string, filePath: string): string {
-    const countQueryRegex = /\s*?\-\-\s+?pn\-count.*?\r?\n(?:\-\-[\w\W]*?\r?\n)*?\s*?((SELECT|WITH)[\w\W]+?)\r?\n(?:--|\s+?)/gi;
-    const exec = countQueryRegex.exec(filePart) || [];
+    const result = filePart.split(/\r?\n\s*?\r?\n/);
+    const filePartSanitized = trimEnd(result[0]);
+    const countQueryRegex = /\s*?\-\-\s+?pn\-count.*?\r?\n(?:\-\-[\w\W]*?\r?\n)*?\s*?((SELECT|WITH)[\w\W\s]+)$/gi;
+    const exec = countQueryRegex.exec(filePartSanitized) || [];
     let query = exec[1];
 
     if (!!query) {
@@ -193,8 +195,10 @@ function parseCountQuery(filePart: string, filePath: string): string {
  * Returns the SQL query 
  */
 function parseCheckQuery(filePart: string): string {
-    const countQueryRegex = /\s*?\-\-\s+?pn\-check.*?\r?\n(?:\-\-[\w\W]*?\r?\n)\s*?((SELECT|WITH)[\w\W]+?)\r?\n(?:--|\s+?)/gi;
-    const exec = countQueryRegex.exec(filePart) || [];
+    const result = filePart.split(/\r?\n\s*?\r?\n/);
+    const filePartSanitized = trimEnd(result[0]);
+    const countQueryRegex = /\s*?\-\-\s+?pn\-check.*?\r?\n(?:\-\-[\w\W]*?\r?\n)\s*?((SELECT|WITH)[\w\W\s]+)$/gi;
+    const exec = countQueryRegex.exec(filePartSanitized) || [];
     const query = exec[1];
     return query;
 }

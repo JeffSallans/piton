@@ -33,6 +33,8 @@ export async function updateFileResults(editor: TextEditor, file: PitonFile, fil
         const result = fileResult.filePartResults[p.order];
         if (result !== undefined && result.resultData.length > 0) {
             createCSVFile(result.resultFilePath, result.resultData);
+            // clean up resultData
+            result.resultData = [];
         }
     }
 }
