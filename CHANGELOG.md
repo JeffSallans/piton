@@ -2,6 +2,10 @@
 
 Feature and bugfixes for each release.
 
+### 0.8.4
+
+* Fixed issue parsing files
+
 ### 0.8.3
 
 * Significantly reduced vsix size

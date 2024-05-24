@@ -124,7 +124,7 @@ where Screenplay is null`);
 
 -- pn-count
 select *
-from Studio_Ghibli
+	from Studio_Ghibli
 
 -- pn-check
 -- pn-name valid name
@@ -137,6 +137,8 @@ select *
 
 		`, () => { return Promise.resolve(''); });
 
+		assert.equal(result.countQuery, `select *
+	from Studio_Ghibli`);
 		assert.equal(result.parts.length, 2);		
 		assert.equal(result.parts[1].name, 'valid name');
 		assert.equal(result.parts[1].sanitizedQuery, `select *

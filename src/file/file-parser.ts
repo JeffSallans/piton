@@ -179,7 +179,8 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
  */
 function parseCountQuery(filePart: string, filePath: string): string {
     const result = filePart.split(/\r?\n\s*?\r?\n/);
-    const filePartSanitized = trimEnd(result[0]);
+    const countResult = result.filter(r => r.toLocaleLowerCase().indexOf('pn-count') > 0);
+    const filePartSanitized = trimEnd(countResult[0]);
     const countQueryRegex = /\s*?\-\-\s+?pn\-count.*?\r?\n(?:\-\-[\w\W]*?\r?\n)*?\s*?((SELECT|WITH)[\w\W\s]+)$/gi;
     const exec = countQueryRegex.exec(filePartSanitized) || [];
     let query = exec[1];
@@ -197,7 +198,7 @@ function parseCountQuery(filePart: string, filePath: string): string {
 function parseCheckQuery(filePart: string): string {
     const result = filePart.split(/\r?\n\s*?\r?\n/);
     const filePartSanitized = trimEnd(result[0]);
-    const countQueryRegex = /\s*?\-\-\s+?pn\-check.*?\r?\n(?:\-\-[\w\W]*?\r?\n)\s*?((SELECT|WITH)[\w\W\s]+)$/gi;
+    const countQueryRegex = /\s*?\-\-\s+?pn\-check.*?\r?\n(?:\-\-[\w\W]*?\r?\n)*?\s*?((SELECT|WITH)[\w\W\s]+)$/gi;
     const exec = countQueryRegex.exec(filePartSanitized) || [];
     const query = exec[1];
     return query;
