@@ -149,7 +149,7 @@ from public.piton_test`
         {
             label: 'pn-tag',
             insertText: 'pn-tag',
-            detail: 'A word to help group results',
+            detail: 'Used to categorize checks that show up on a summary report',
             documentation: `Example:
 \`\`\`sql
 -- pn-check

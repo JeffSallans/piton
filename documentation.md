@@ -47,8 +47,9 @@ where name is null or name = ''
 
 (Required) Need one per file. Used to define the database driver to use. Options: 
 * postgres
-* oracledb
+* oracle
 * duckdb
+* sqlite
 
 ```sql
 -- pn-sqlDialect postgres
@@ -87,9 +88,10 @@ One per query. Annotates a query to determine the SQL check.
 | --- | --- | --- | --- |
 | pn-id-col | Required | | The column name to use to merge with results |
 | pn-name   | Optional | Order # | Sets a human name to the test |
+| pn-expect   | Optional | no_results | Determines the type of assert that should run. Options are: `no_results` and `WIP match_snapshot` |
 | pn-approve-col | Optional | approved | The column name to determine if a result has been reviewed and can be ignored |
+| pn-tag | Optional | N/A | Used to categorize checks that show up on a summary report |
 | pn-ignore-cols | Optional | No Columns | WIP - Provide a list of columns separated by a comma to ignore when checking if the approval column should be carried over |
-| pn-no-removed | Optional | False | WIP - Set if removed rows from the snapshot need to be reviewed to pass. |
 | pn-filePath | Inline SQL | N/A | Use in your SQL to replace with the current file path |
 
 ```sql
