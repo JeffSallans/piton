@@ -9,6 +9,7 @@ import { PitonFile } from "../models/PitonFile";
 import { PitonFileResult } from "../models/PitonFileResult";
 import path from "path";
 import { PitonResultSummary } from "../models/PitonResultSummary";
+import { createCSVFile } from "./file-utility";
 
 /**
  * Creates or updates result.piton.csv which contains all details of the run results
@@ -23,11 +24,10 @@ export async function updateResultsSummary(workspaceRoot: string, fileResults: D
 
 /**
  * Creates or updates the exception .piton.sql.csv files for all the check results from the given Piton file
- * @param editor 
  * @param file 
  * @param fileResult 
  */
-export async function updateFileResults(editor: TextEditor, file: PitonFile, fileResult: PitonFileResult) {
+export async function updateFileResults(file: PitonFile, fileResult: PitonFileResult) {
     // Create Exception file
     for (const p of file.parts) {
         const result = fileResult.filePartResults[p.order];
@@ -37,12 +37,6 @@ export async function updateFileResults(editor: TextEditor, file: PitonFile, fil
             result.resultData = [];
         }
     }
-}
-
-/** Writes the json object to the given file path. If a file exists, the file is overwritten */
-function createCSVFile(filePath: string, data: object[]) {
-    const csvString = json2csv(data, {});
-    fs.writeFileSync(filePath, csvString);
 }
 
 /**

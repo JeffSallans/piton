@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { confirmExceptions, confirmSnapshot, getActiveFile, getFileResultByName, getTests, parseActiveFile, parseAllFiles, renderResults, runActiveFile, runAllFiles, updatePassword } from './file/file';
+import { approveExceptions, denyExceptions, getActiveFile, getFileResultByName, getTests, parseActiveFile, parseAllFiles, renderResults, runActiveFile, runAllFiles, updatePassword } from './file/file';
 import { map } from 'lodash';
 import { languages } from 'vscode';
 import * as fs from 'fs';
@@ -15,6 +15,7 @@ import duckdb from './sql-dialects/duckdb';
 import sqllite from './sql-dialects/sqlite';
 import { OutputChannelLogger } from './logging-and-debugging/OutputChannelLogger';
 import { ExtensionSecretStorage } from './logging-and-debugging/ExtensionSecretStorage';
+import { PitonTestPartItem } from './models/PitonTestPartItem';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -55,14 +56,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// PARSE
 			parseActiveFile(document, promptPassword);
-			const parsedData = getActiveFile(editor);
-			console.log(`${parsedData?.name}: connectionString ${parsedData?.connectionString}`);
-			map(parsedData?.parts, part => {
-				console.log(`${part.name}: rawText ${part.rawText}`);
-			});
 
 			// Render
-			renderResults(rootPath, vscode.window.activeTextEditor);
+			renderResults(rootPath);
         }
     });
 	context.subscriptions.push(fileContentsDisposable);
@@ -90,19 +86,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// RUN
 			await runActiveFile(editor);
-			const parsedData = getActiveFile(editor);
-			const parsedResult = getFileResultByName(`${parsedData?.name}`);
-			if (parsedResult !== null) {
-				console.log(`${parsedData?.name}: count ${parsedResult.count}`);
-				map(parsedResult.filePartResults, partResult => {
-					console.log(`${partResult.parsedPart.order}: result ${partResult.result} resultData ${partResult.resultData.toString()}`);
-				});
-			}
 
 			progress.report({ increment: 80 });
 
 			// Render
-			renderResults(rootPath, vscode.window.activeTextEditor);
+			renderResults(rootPath);
 			testTreeDataProvider.refresh();
 		
 			await Promise.resolve();
@@ -119,7 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
 		await parseAllFiles(rootPath, promptPassword);
 
 		// Render
-		renderResults(rootPath, vscode.window.activeTextEditor);
+		renderResults(rootPath);
 		testTreeDataProvider.refresh();
 	});
 	context.subscriptions.push(parseAllDisposable);
@@ -139,7 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
 			await runAllFiles(rootPath, progress, cancelilation, promptPassword);
 
 			// Render
-			renderResults(rootPath, vscode.window.activeTextEditor);
+			renderResults(rootPath);
 			testTreeDataProvider.refresh();
 
 			await Promise.resolve();
@@ -160,14 +148,19 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(createExampleDisposable);
 
-	const exceptionDisposable = vscode.commands.registerCommand('piton.confirmExceptions', () => {
+	const approveDisposable = vscode.commands.registerCommand('piton.approveFilePart', (pitonTestPartItem: PitonTestPartItem) => {
 		// Confirm Exceptions
-		confirmExceptions();
-
-		// Render
-		renderResults(rootPath, vscode.window.activeTextEditor);
+		approveExceptions(rootPath, pitonTestPartItem.pitonResult);
+		testTreeDataProvider.refresh();
 	});
-	context.subscriptions.push(exceptionDisposable);
+	context.subscriptions.push(approveDisposable);
+
+	const denyDisposable = vscode.commands.registerCommand('piton.denyFilePart', (pitonTestPartItem: PitonTestPartItem) => {
+		// Confirm Exceptions
+		denyExceptions(rootPath, pitonTestPartItem.pitonResult);
+		testTreeDataProvider.refresh();
+	});
+	context.subscriptions.push(denyDisposable);
 
 	const updatePasswordDisposable = vscode.commands.registerCommand('piton.updatePassword', function () {
 		vscode.window.showInformationMessage('Updated Password');

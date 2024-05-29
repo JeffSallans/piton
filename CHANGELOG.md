@@ -2,6 +2,11 @@
 
 Feature and bugfixes for each release.
 
+### 0.9.0
+
+* Added snapshot capabilities
+* Added approval and deny hot buttons
+
 ### 0.8.4
 
 * Fixed issue parsing files

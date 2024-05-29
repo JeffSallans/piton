@@ -12,6 +12,7 @@ import { PitonFileResult } from "../models/PitonFileResult";
 import { PitonLanguageClient } from "../language/PitonLanguageClient";
 import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecretStorage";
 import { PitonResultSummary } from "../models/PitonResultSummary";
+import { approveFilePart, denyFilePart } from "./file-approver";
 
 /** The parsed files data */
 let fileData: Dictionary<PitonFile | null>;
@@ -32,7 +33,7 @@ export function getFileResultDictionary(): Dictionary<PitonFileResult> {
 
 /** Return the piton file for the give file name */
 export function getFileByName(fileAndFolderName: string): PitonFile | null {
-    const fileNameRegex = /^(.*?)(\/|\\)?([^\\\/]+?\.piton\.sql)/gi;
+    const fileNameRegex = /^(.*?)(\/|\\)?([^\\\/]+?\.piton\.sql)$/gi;
     const results = fileNameRegex.exec(fileAndFolderName) || [];
     const fileName = results[3];
     return fileData[fileName];
@@ -40,7 +41,7 @@ export function getFileByName(fileAndFolderName: string): PitonFile | null {
 
 /** Return the piton result file for the give file name */
 export function getFileResultByName(fileAndFolderName: string): PitonFileResult | null {
-    const fileNameRegex = /^(.*?)(\/|\\)?([^\\\/]+?\.piton\.sql)/gi;
+    const fileNameRegex = /^(.*?)(\/|\\)?([^\\\/]+?\.piton\.sql)$/gi;
     const results = fileNameRegex.exec(fileAndFolderName) || [];
     const fileName = results[3];
     if (fileResultData === undefined) { return null; }
@@ -69,7 +70,14 @@ export function getPitonResultSummary(): PitonResultSummary[] {
 
 /** Parse */
 export async function parseActiveFile(file: TextDocument, promptPassword: (user: string) => Promise<string>) {
-    // 1. Parse test1.piton.sql
+    // Check if active file is *.piton.sql
+    const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)$/gi;
+    const results = fileNameRegex.exec(file.fileName) || [];
+    if (results.length === 0) {
+        return;
+    }
+
+    // Parse *.piton.sql
     const activeFileData = await getFileFromDoc(file, promptPassword);
     fileData[activeFileData.name] = activeFileData;
 }
@@ -87,10 +95,22 @@ export async function runActiveFile(editor: TextEditor | undefined) {
     fileResultData[activeFileData.name] = result;
 }
 
+/** Run */
+export async function runFileByFilePart(pitonFilePartResult: PitonFilePartResult | undefined) {
+    if (pitonFilePartResult?.parsedPart.fileName === undefined) { return; }
+
+    const activeFileData = getFileByName(pitonFilePartResult?.parsedPart.fileName);
+
+    if (activeFileData === undefined || activeFileData === null) { return; }
+
+    const result = await runFile(activeFileData);
+    fileData[activeFileData.name] = activeFileData;
+    fileResultData[activeFileData.name] = result;
+}
+
 
 /** Render Results */
-export async function renderResults(workspaceRoot: string, editor: TextEditor | undefined) {
-    if (editor === undefined) { return; }
+export async function renderResults(workspaceRoot: string) {
     // 1. Create/Update Result File
     updateResultsSummary(workspaceRoot, fileResultData);
 
@@ -98,18 +118,24 @@ export async function renderResults(workspaceRoot: string, editor: TextEditor | 
     const files = values(fileResultData);
 
     for (const f of files) {
-        await updateFileResults(editor, f.parsedFile, f);
+        await updateFileResults(f.parsedFile, f);
     }
 }
 
 /** Confirm Exceptions */
-export function confirmExceptions() {
-
+export function approveExceptions(workspaceRoot: string, pitonTestPartItem: PitonFilePartResult) {
+    if (pitonTestPartItem === undefined) { return; }
+    approveFilePart(pitonTestPartItem);
+    runFileByFilePart(pitonTestPartItem);
+    renderResults(workspaceRoot);
 }
 
-/** Confirm Snapshot */
-export function confirmSnapshot() {
-
+/** Deny Exceptions */
+export function denyExceptions(workspaceRoot: string, pitonTestPartItem: PitonFilePartResult) {
+    if (pitonTestPartItem === undefined) { return; }
+    denyFilePart(pitonTestPartItem);
+    runFileByFilePart(pitonTestPartItem);
+    renderResults(workspaceRoot);
 }
 
 /** Update Password */
@@ -163,7 +189,7 @@ export async function getTests(workspaceRoot: string, promptPassword: (user: str
     let data = [];
     for (const f of pitonfiles) {
         const fileLocation = path.join(workspaceRoot, f);
-        const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
+        const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)$/gi;
         const results = fileNameRegex.exec(fileLocation) || [];
 
         if (results?.length <= 2 || results[1] === null || results[2] === null) {

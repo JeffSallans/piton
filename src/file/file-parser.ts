@@ -15,7 +15,7 @@ import exp from "constants";
  */
 export async function getFileFromDoc(file: TextDocument, promptPassword: (user: string) => Promise<string>): Promise<PitonFile> {
     const text = file.getText();
-    const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)/gi;
+    const fileNameRegex = /^(.+?)(\/|\\)([^\\\/]+?\.piton\.sql)$/gi;
     const results = fileNameRegex.exec(file.fileName) || [];
     return await getFile(`${results[1]}${results[2]}`, results[3], text, promptPassword);
 }
@@ -156,6 +156,12 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\n invalid pn-expect given ${expect} expecting one of ${validExpectOptions.concat(', ')}`, true);
     }
 
+
+    const suffix = `${name || 'check'}${order}`;
+    const csvResultPath = `${filePathAndName}.${suffix}.csv`;
+    const snapshotPath = csvResultPath.replace(`.piton.sql.${suffix}.csv`, `.piton.sql.${suffix}.snapshot.csv`);
+    const newSnapshotPath = csvResultPath.replace(`.piton.sql.${suffix}.csv`, `.piton.sql.${suffix}.new.csv`);
+    
     return {
         rawText: filePart,
         order,
@@ -171,6 +177,9 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
         
         expect,
         sanitizedQuery,
+        csvResultPath,
+        snapshotPath,
+        newSnapshotPath
     };
 }
 

@@ -2,7 +2,7 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "0.8.4",
+  "version": "0.9.0",
   "icon": "./resources/pitons.png",
   "repository": {
     "url": "https://github.com/JeffSallans/piton"
@@ -19,7 +19,10 @@
   "activationEvents": [
     "onLanguage:sql"
   ],
-  "main": "./dist/extension.js",
+  "main": "./out/extension.js",
+  "buildmain": "./dist/extension.js",
+  "devmain": "./out/extension.js",
+  "gypfile": false,
   "contributes": {
     "commands": [
       {
@@ -51,6 +54,16 @@
       {
         "command": "piton.updatePassword",
         "title": "Update Password"
+      },
+      {
+        "command": "piton.approveFilePart",
+        "title": "Approve Result",
+        "icon": "$(check)"
+      },
+      {
+        "command": "piton.denyFilePart",
+        "title": "Deny Result",
+        "icon": "$(discard)"
       }
     ],
     "viewsContainers": {
@@ -90,6 +103,18 @@
           "when": "view == pitonFiles",
           "group": "navigation"
         }
+      ],
+      "view/item/context": [
+        {
+          "command": "piton.approveFilePart",
+          "when": "view == pitonFiles && viewItem == piton_check",
+          "group": "inline"
+        },
+        {
+          "command": "piton.denyFilePart",
+          "when": "view == pitonFiles && viewItem == piton_check",
+          "group": "inline"
+        }
       ]
     },
     "grammars": [
@@ -114,15 +139,16 @@
   },
   "scripts": {
     "vscode:package": "vsce package",
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
-    "vscode:prepublish": "npm run esbuild-base -- --minify",
-    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --external:mock-aws-s3 --external:aws-sdk --external:nock --format=cjs --platform=node --loader:.html=text",
-    "esbuild": "npm run esbuild-base -- --sourcemap",
-    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "WIP:vscode:prepublish": "npm run package",
+    "webpack": "webpack --mode development",
+    "webpack-dev": "webpack --mode development --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
     "test-compile": "tsc -p ./"
   },
   "devDependencies": {
@@ -139,16 +165,23 @@
     "@vscode/test-electron": "^2.3.9",
     "esbuild": "^0.21.3",
     "eslint": "^8.57.0",
-    "typescript": "^5.3.3"
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.0",
+    "aws-sdk": "^2.1087.0",
     "dayjs": "^1.11.10",
-    "duckdb": "^0.10.1",
+    "duckdb": "^0.10.2",
     "fast-fuzzy": "^1.12.0",
     "glob": "^10.3.12",
     "json-2-csv": "^5.5.1",
     "lodash": "^4.17.21",
+    "mock-aws-s3": "^4.0.2",
     "mssql": "^10.0.2",
+    "nock": "^12.0.3",
     "oracledb": "^6.4.0",
     "pg": "^8.11.5",
     "sqlite": "^5.1.1",

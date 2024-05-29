@@ -1,7 +1,7 @@
 import { filter, keyBy, map, set, get, some, keys, every, sum } from "lodash";
 import * as fs from 'fs';
 import dayjs from "dayjs";
-import { csv2json } from "json-2-csv";
+import { csv2json, json2csv } from "json-2-csv";
 
 import { PitonFile } from "../models/PitonFile";
 import { SqlDialectAdapter } from "../models/SqlDialectAdapter";
@@ -14,6 +14,8 @@ import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
 import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
 import { ExtensionSecretStorage } from "../logging-and-debugging/ExtensionSecretStorage";
+import { PitonFilePart } from "../models/PitonFilePart";
+import { createCSVFile, mergeResultWithPrevious } from "./file-utility";
 
 /**
  * Execute the file and return the result
@@ -107,9 +109,11 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
             continue;
         }
 
-        mergeResultWithPrevious(resultData, part.idColumn, part.approveColumn, prevPartResultFile);
-
         if (part.expect === 'no_results') {
+            // Handle results
+            mergeResultWithPrevious(resultData, part.idColumn, part.approveColumn, prevPartResultFile);
+
+            // Determine Pass/Fail
             toBeReviewedCount = resultData.filter(r => get(r, part.approveColumn, '') === '').length; 
             errorCount = resultData.filter(r => get(r, part.approveColumn, 0) !== 1).length; 
             if (toBeReviewedCount === 0 && errorCount === 0) {
@@ -119,6 +123,17 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
             } else {
                 result = 'Fail';
             }
+        } else if (part.expect === 'snapshot') {
+            const snapshotResult = await handleSnapshotResult(
+                csvResultPath,
+                resultData,
+                prevPartResultFile,
+                part
+            );
+            result = snapshotResult.result;
+            resultData = snapshotResult.resultData;
+            errorCount = snapshotResult.errorCount;
+            toBeReviewedCount = snapshotResult.toBeReviewedCount;
         }
 
         filePartResults.push({
@@ -170,43 +185,75 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
 }
 
 /**
- * Modifieds result with approveCol value from the previous result 
- * @param result 
- * @param idCol 
- * @param approveCol 
- * @param prevResult 
+ * Checks if the query result data matches the previous snapshot
+ * Creates 3 CSVs: file.piton.sql.csv, file.piton.sql.snapshot.csv, and file.piton.sql.new.csv, 
+ * @param csvResultPath the full path and file name for the csv
+ * @param queryResultData the result to check
+ * @param prevDiffResult the previous result diff
+ * @param part the check meta data
+ * @returns 
  */
-function mergeResultWithPrevious(result: object[], idCol: string, approveCol: string, prevResult: object[]): void {
-    // Filter Previous with 0 or 1 set for approve
-    const prevDictionary = keyBy(prevResult, idCol);
+async function handleSnapshotResult(csvResultPath: string, queryResultData: object[], prevDiffResult: object[], part: PitonFilePart):
+Promise<{ resultData: object[], result: string, errorCount: number, toBeReviewedCount: number }>
+{
+    // Gather result data
+    const changeCol = 'change';
 
-    // Update approve column in result
-    for (const r of result) {
-        const prevRow = prevDictionary[get(r, idCol)];
-        // If column is to be ignored update
-        if (areRowsEqual(r, prevRow)) {
-            set(r, approveCol, get(prevRow, approveCol, ''));
-        }
-        else {
-            set(r, approveCol, '');
-        }
+    // If no snapshot file exists, create first file and set results to empty
+    if (!fs.existsSync(part.snapshotPath)) {
+        createCSVFile(part.snapshotPath, queryResultData);
+
+        // Terminate early
+        return {
+            result: 'Pass',
+            resultData: [],
+            errorCount: 0,
+            toBeReviewedCount: 0  
+        };
     }
+
+    // Save new result
+    createCSVFile(part.newSnapshotPath, queryResultData);
+    
+    // Compare new and old, result will be saved as resultData and *.piton.sql.csv
+    duckdb.setupConnection('');
+    const resultData = await duckdb.querySQL(`SELECT 'removed' as ${changeCol}, * FROM '${part.snapshotPath}'
+    EXCEPT
+    SELECT 'removed' as ${changeCol}, * FROM '${part.newSnapshotPath}'
+    UNION ALL
+    SELECT 'added' as ${changeCol}, * FROM '${part.newSnapshotPath}'
+    EXCEPT
+    SELECT 'added' as ${changeCol}, * FROM '${part.snapshotPath}'`);
+    duckdb.closeConnection();
+
+    mergeResultWithPrevious(resultData, part.idColumn, part.approveColumn, prevDiffResult);
+
+    // Determine Pass/Fail
+    let result = 'No Run';
+    const toBeReviewedCount = resultData.filter(r => get(r, part.approveColumn, '') === '').length; 
+    const errorCount = resultData.filter(r => get(r, part.approveColumn, 0) !== 1).length; 
+    if (toBeReviewedCount === 0 && errorCount === 0) {
+        result = 'Pass';
+    } else if (toBeReviewedCount > 0) {
+        result = 'To Review';
+    } else {
+        result = 'Fail';
+    }
+
+    // If errors, leave both files
+
+    // If no errors, delete *.snapshot.csv and rename *.new.csv to *.snapshot.csv
+    if (result === 'Pass' && fs.existsSync(part.newSnapshotPath)) {
+        fs.rmSync(part.newSnapshotPath);
+    }
+
+    return {
+        result,
+        resultData,
+        errorCount,
+        toBeReviewedCount
+    };
 }
 
-/**
- * Returns true if the new row contains all the data of the old row.
- * @param newRow 
- * @param oldRow 
- * @param ignoreCols Fields to ignore when comparing
- */
-function areRowsEqual(newRow: object, oldRow: object, ignoreCols?: string[]): boolean {
-    const fields = keys(newRow);
-    const allMatch = every(fields, (f) => {
-        if (ignoreCols !== undefined && ignoreCols.includes(f)) { return true; }
 
-        const fieldMatches = (get(newRow, f, '') === get(oldRow, f, ''));
-        return fieldMatches;
-    });
-    return allMatch;
-}
 

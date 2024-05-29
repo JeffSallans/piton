@@ -49,11 +49,28 @@ export class PitonTestPartItem extends vscode.TreeItem {
 		}
 
 		const absFilePath = `file:${pitonResult.resultFilePath.replaceAll('\\', '/')}`;
+		const absSnapshotFilePath = `file:${pitonResult.parsedPart.snapshotPath.replaceAll('\\', '/')}`;
+		const absNewSnapshotFilePath = `file:${pitonResult.parsedPart.newSnapshotPath.replaceAll('\\', '/')}`;
+
 		this.command = {
 			command: 'vscode.open',
 			title: 'Open Check Result',
 			arguments: [vscode.Uri.parse(absFilePath)]
 		};
+
+		if (pitonResult.parsedPart.expect === 'snapshot' && pitonResult.result === 'Pass') {
+			this.command = {
+				command: 'vscode.open',
+				title: 'View Snapshot',
+				arguments: [vscode.Uri.parse(absSnapshotFilePath)]
+			};
+		} else if (pitonResult.parsedPart.expect === 'snapshot') {
+			this.command = {
+				command: 'vscode.diff',
+				title: 'View Snapshot Diff',
+				arguments: [vscode.Uri.parse(absSnapshotFilePath), vscode.Uri.parse(absNewSnapshotFilePath)]
+			};		
+		}
 	}
 
 	contextValue = 'piton_check';
