@@ -106,12 +106,12 @@
       ],
       "view/item/context": [
         {
-          "command": "piton.approveFilePart",
+          "command": "piton.denyFilePart",
           "when": "view == pitonFiles && viewItem == piton_check",
           "group": "inline"
         },
         {
-          "command": "piton.denyFilePart",
+          "command": "piton.approveFilePart",
           "when": "view == pitonFiles && viewItem == piton_check",
           "group": "inline"
         }

@@ -62,4 +62,5 @@ export function areRowsEqual(newRow: object, oldRow: object, ignoreCols?: string
 export function createCSVFile(filePath: string, data: object[]) {
     const csvString = json2csv(data, {});
     fs.writeFileSync(filePath, csvString);
+    fs.fsyncSync(2);
 }

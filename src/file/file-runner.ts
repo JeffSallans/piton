@@ -244,7 +244,7 @@ Promise<{ resultData: object[], result: string, errorCount: number, toBeReviewed
 
     // If no errors, delete *.snapshot.csv and rename *.new.csv to *.snapshot.csv
     if (result === 'Pass' && fs.existsSync(part.newSnapshotPath)) {
-        fs.rmSync(part.newSnapshotPath);
+        //fs.rmSync(part.newSnapshotPath, {maxRetries: 5});
     }
 
     return {

@@ -123,19 +123,19 @@ export async function renderResults(workspaceRoot: string) {
 }
 
 /** Confirm Exceptions */
-export function approveExceptions(workspaceRoot: string, pitonTestPartItem: PitonFilePartResult) {
+export async function approveExceptions(workspaceRoot: string, pitonTestPartItem: PitonFilePartResult) {
     if (pitonTestPartItem === undefined) { return; }
-    approveFilePart(pitonTestPartItem);
-    runFileByFilePart(pitonTestPartItem);
-    renderResults(workspaceRoot);
+    await approveFilePart(pitonTestPartItem);
+    await runFileByFilePart(pitonTestPartItem);
+    await renderResults(workspaceRoot);
 }
 
 /** Deny Exceptions */
-export function denyExceptions(workspaceRoot: string, pitonTestPartItem: PitonFilePartResult) {
+export async function denyExceptions(workspaceRoot: string, pitonTestPartItem: PitonFilePartResult) {
     if (pitonTestPartItem === undefined) { return; }
-    denyFilePart(pitonTestPartItem);
-    runFileByFilePart(pitonTestPartItem);
-    renderResults(workspaceRoot);
+    await denyFilePart(pitonTestPartItem);
+    await runFileByFilePart(pitonTestPartItem);
+    await renderResults(workspaceRoot);
 }
 
 /** Update Password */

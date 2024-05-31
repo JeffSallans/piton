@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const testTreeDataProvider = new TestTreeDataProvider(rootPath);
 	vscode.window.registerTreeDataProvider('pitonFiles', testTreeDataProvider);
 
-	const fileContentsDisposable = vscode.commands.registerCommand('piton.scanDocument', function () {
+	const fileContentsDisposable = vscode.commands.registerCommand('piton.scanDocument', async () => {
 		OutputChannelLogger.log('Parsing file');
 
 		// Get the active text editor
@@ -55,10 +55,10 @@ export function activate(context: vscode.ExtensionContext) {
             let document = editor.document;
 
 			// PARSE
-			parseActiveFile(document, promptPassword);
+			await parseActiveFile(document, promptPassword);
 
 			// Render
-			renderResults(rootPath);
+			await renderResults(rootPath);
         }
     });
 	context.subscriptions.push(fileContentsDisposable);
@@ -90,7 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
 			progress.report({ increment: 80 });
 
 			// Render
-			renderResults(rootPath);
+			await renderResults(rootPath);
 			testTreeDataProvider.refresh();
 		
 			await Promise.resolve();
@@ -107,7 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
 		await parseAllFiles(rootPath, promptPassword);
 
 		// Render
-		renderResults(rootPath);
+		await renderResults(rootPath);
 		testTreeDataProvider.refresh();
 	});
 	context.subscriptions.push(parseAllDisposable);
@@ -127,7 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
 			await runAllFiles(rootPath, progress, cancelilation, promptPassword);
 
 			// Render
-			renderResults(rootPath);
+			await renderResults(rootPath);
 			testTreeDataProvider.refresh();
 
 			await Promise.resolve();
@@ -148,17 +148,47 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(createExampleDisposable);
 
-	const approveDisposable = vscode.commands.registerCommand('piton.approveFilePart', (pitonTestPartItem: PitonTestPartItem) => {
-		// Confirm Exceptions
-		approveExceptions(rootPath, pitonTestPartItem.pitonResult);
-		testTreeDataProvider.refresh();
+	const approveDisposable = vscode.commands.registerCommand('piton.approveFilePart', async (pitonTestPartItem: PitonTestPartItem) => {
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			cancellable: true,
+			title: 'Approving Piton File'
+		}, async (progress, cancelilation) => {
+			
+			cancelilation.onCancellationRequested(cancelConnections);
+
+			progress.report({  increment: 0 });
+
+			// Confirm Exceptions
+			await approveExceptions(rootPath, pitonTestPartItem.pitonResult);
+			progress.report({  increment: 80 });
+
+			// Render exceptions
+			testTreeDataProvider.refresh();
+			progress.report({  increment: 100 });
+		});
 	});
 	context.subscriptions.push(approveDisposable);
 
-	const denyDisposable = vscode.commands.registerCommand('piton.denyFilePart', (pitonTestPartItem: PitonTestPartItem) => {
-		// Confirm Exceptions
-		denyExceptions(rootPath, pitonTestPartItem.pitonResult);
-		testTreeDataProvider.refresh();
+	const denyDisposable = vscode.commands.registerCommand('piton.denyFilePart', async (pitonTestPartItem: PitonTestPartItem) => {
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			cancellable: true,
+			title: 'Denying Piton File'
+		}, async (progress, cancelilation) => {
+			
+			cancelilation.onCancellationRequested(cancelConnections);
+
+			progress.report({  increment: 0 });
+
+			// Deny Exceptions
+			await denyExceptions(rootPath, pitonTestPartItem.pitonResult);
+			progress.report({  increment: 80 });
+
+			// Render exceptions
+			testTreeDataProvider.refresh();
+			progress.report({  increment: 100 });
+		});
 	});
 	context.subscriptions.push(denyDisposable);
 

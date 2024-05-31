@@ -1,4 +1,4 @@
--- pn-connectionString postgres://dbt_user:pn-password@localhost:5432/dbt_example
+-- pn-connectionString postgres://postgres:pn-password@localhost:5432/public
 -- pn-sqlDialect postgres
 
 -- pn-count

@@ -11,3 +11,9 @@ select *
 from Studio_Ghibli
 where Name like '%ä%'
 
+-- pn-check
+-- pn-expect snapshot
+-- pn-id-col Name
+select *
+from Studio_Ghibli
+
