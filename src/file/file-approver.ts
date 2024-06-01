@@ -5,17 +5,18 @@ import { csv2json, json2csv } from "json-2-csv";
 
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { createCSVFile } from "./file-utility";
+import { OutputChannelLogger } from "../logging-and-debugging/OutputChannelLogger";
 
 /**
  * Mark the file part as approved and the re-run
  * @param file The Piton file part result that is approved
  * @returns
  */
-export async function approveFilePart(filePart: PitonFilePartResult): Promise<void> {
+export async function approveFilePart(filePart: PitonFilePartResult): Promise<boolean> {
     if (filePart.parsedPart.expect === 'snapshot') {
-        approveSnapshotFilePart(filePart);
+        return approveSnapshotFilePart(filePart);
     } else {
-        approveNoResultsFilePart(filePart);
+        return approveNoResultsFilePart(filePart);
     }
 }
 
@@ -23,14 +24,16 @@ export async function approveFilePart(filePart: PitonFilePartResult): Promise<vo
  * Mark the file part as approved
  * Modifies the filePart.parsePart.csvResultPath with approved that are unset
  * @param file The Piton file part result that is approved
- * @returns
+ * @returns true if the approval was successful
  */
-async function approveNoResultsFilePart(filePart: PitonFilePartResult): Promise<void> {
+async function approveNoResultsFilePart(filePart: PitonFilePartResult): Promise<boolean> {
     // Open the result csv and set all records to approved
     let resultData: object[] = [];
-    if (fs.existsSync(filePart.parsedPart.csvResultPath)) {
-        resultData = csv2json(fs.readFileSync(filePart.parsedPart.csvResultPath).toString());
+    if (!fs.existsSync(filePart.parsedPart.csvResultPath)) {
+        OutputChannelLogger.error(`File needed for approval: ${filePart.parsedPart.csvResultPath}`, true);
+        return false;
     }
+    resultData = csv2json(fs.readFileSync(filePart.parsedPart.csvResultPath).toString());
 
     resultData = map(resultData, r => {
         if (get(r, filePart.parsedPart.approveColumn) === 0) { return r; }
@@ -39,24 +42,29 @@ async function approveNoResultsFilePart(filePart: PitonFilePartResult): Promise<
     });
 
     createCSVFile(filePart.parsedPart.csvResultPath, resultData);
+
+    return true;
 }
 
 /**
  * Mark the file part as approved for pn-expect snapshot
  * @param file The Piton file part result that is approved
- * @returns
+ * @returns true if the approval was successful
  */
-async function approveSnapshotFilePart(filePart: PitonFilePartResult): Promise<void> {
+async function approveSnapshotFilePart(filePart: PitonFilePartResult): Promise<boolean> {
     // Make *.new.csv now *.snapshot.csv
     if (fs.existsSync(filePart.parsedPart.csvResultPath)) {
         fs.rmSync(filePart.parsedPart.csvResultPath);
     }
 
-    if (fs.existsSync(filePart.parsedPart.snapshotPath)) {
-        fs.rmSync(filePart.parsedPart.snapshotPath);
+    if (!fs.existsSync(filePart.parsedPart.newSnapshotPath)) {
+        OutputChannelLogger.error(`File needed for approval: ${filePart.parsedPart.newSnapshotPath}`, true);
+        return false;
     }
 
-    fs.renameSync(filePart.parsedPart.newSnapshotPath, filePart.parsedPart.snapshotPath);
+    const approvedSnapshotData = fs.readFileSync(filePart.parsedPart.newSnapshotPath).toString();
+    fs.writeFileSync(filePart.parsedPart.snapshotPath, approvedSnapshotData);
+    return true;
 }
 
 /**

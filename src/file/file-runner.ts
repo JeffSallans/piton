@@ -5,6 +5,7 @@ import { csv2json, json2csv } from "json-2-csv";
 
 import { PitonFile } from "../models/PitonFile";
 import { SqlDialectAdapter } from "../models/SqlDialectAdapter";
+import internalDuckdb from '../sql-dialects/internal-duckdb';
 import postgres from '../sql-dialects/postgres';
 import duckdb from '../sql-dialects/duckdb';
 import oracle from '../sql-dialects/oracle';
@@ -216,15 +217,15 @@ Promise<{ resultData: object[], result: string, errorCount: number, toBeReviewed
     createCSVFile(part.newSnapshotPath, queryResultData);
     
     // Compare new and old, result will be saved as resultData and *.piton.sql.csv
-    duckdb.setupConnection('');
-    const resultData = await duckdb.querySQL(`SELECT 'removed' as ${changeCol}, * FROM '${part.snapshotPath}'
+    internalDuckdb.setupConnection('');
+    const resultData = await internalDuckdb.querySQL(`SELECT 'removed' as ${changeCol}, * FROM '${part.snapshotPath}'
     EXCEPT
     SELECT 'removed' as ${changeCol}, * FROM '${part.newSnapshotPath}'
     UNION ALL
     SELECT 'added' as ${changeCol}, * FROM '${part.newSnapshotPath}'
     EXCEPT
     SELECT 'added' as ${changeCol}, * FROM '${part.snapshotPath}'`);
-    duckdb.closeConnection();
+    internalDuckdb.closeConnection();
 
     mergeResultWithPrevious(resultData, part.idColumn, part.approveColumn, prevDiffResult);
 

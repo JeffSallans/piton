@@ -10,9 +10,9 @@ Piton is a portable SQL testing VS Code Extension. The goal is to be an easy to 
 
 1. Click the "create piton example" button, this won't show if a .piton.sql exists already
 
-1. Refresh the list to show 1 created file
+1. Refresh the list to show created files
 
-1. Run the file and look at Piton output for the results
+1. Run a file and look at Piton output for the results
 
 1. Optional - Install SQL Parser from the [marketplace](https://marketplace.visualstudio.com/items?itemName=mtxr.sqltools)
 
@@ -55,18 +55,14 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 
 | layers |
 | --- |
-| VS Code Extension |
-| V |
-| File Runner |
-| V |
-| pg or duckdb |
-| V |
-| SQL DB |
+| 1. VS Code Extension |
+| 2. File Runner |
+| 3. SQL Dialect (pg, oracledb, sqlite, or duckdb) |
+| 4. SQL DB |
 
 ## Known Issues
 
 * duckdb overrides any approved values set in the .csv because of an ID issue
-* the output will show bad parsing of the active file even if it is not .piton.sql type
 * the run button does not disable if the job is running already
 
 ## Release Notes

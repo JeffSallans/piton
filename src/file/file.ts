@@ -125,7 +125,8 @@ export async function renderResults(workspaceRoot: string) {
 /** Confirm Exceptions */
 export async function approveExceptions(workspaceRoot: string, pitonTestPartItem: PitonFilePartResult) {
     if (pitonTestPartItem === undefined) { return; }
-    await approveFilePart(pitonTestPartItem);
+    const wasSuccessful = await approveFilePart(pitonTestPartItem);
+    if (!wasSuccessful) { return; }
     await runFileByFilePart(pitonTestPartItem);
     await renderResults(workspaceRoot);
 }

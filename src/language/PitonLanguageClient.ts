@@ -124,7 +124,6 @@ Example:
 * oracle
 * duckdb
 * sqlite
-* file://...
 
 Example:
 -- pn-sqlDialect postgres`
