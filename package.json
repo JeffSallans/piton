@@ -56,6 +56,18 @@
         "title": "Update Password"
       },
       {
+        "command": "piton.showSummary",
+        "title": "Piton Show Summary"
+      },
+      {
+        "command": "calicoColors.addColor",
+        "title": "Add Color"
+      },
+      {
+        "command": "calicoColors.clearColors",
+        "title": "Clear Colors"
+      },
+      {
         "command": "piton.approveFilePart",
         "title": "Approve Result",
         "icon": "$(check)"
@@ -77,6 +89,12 @@
     },
     "views": {
       "piton-explorer": [
+        {
+          "type": "webview",
+          "id": "pitonSummaryReport",
+          "icon": "resources/dark/pitons.svg",
+          "name": "Piton Summary"
+        },
         {
           "id": "pitonFiles",
           "name": "Piton Files",

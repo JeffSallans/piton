@@ -16,6 +16,7 @@ import sqllite from './sql-dialects/sqlite';
 import { OutputChannelLogger } from './logging-and-debugging/OutputChannelLogger';
 import { ExtensionSecretStorage } from './logging-and-debugging/ExtensionSecretStorage';
 import { PitonTestPartItem } from './models/PitonTestPartItem';
+import { PitonSummaryViewProvider } from './webviews/PitonSummaryViewProvider';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -235,6 +236,27 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 	context.subscriptions.push(onSaveDisposible);
+
+	// Setup summary view
+	const provider = new PitonSummaryViewProvider(context.extensionUri);
+
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(PitonSummaryViewProvider.viewType, provider));
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('piton.showSummary', () => {
+			provider.show();
+		}));
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('calicoColors.addColor', () => {
+			provider.addColor();
+		}));
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('calicoColors.clearColors', () => {
+			provider.clearColors();
+		}));
 }
 
 /** Used to clean up the SQL connections */
