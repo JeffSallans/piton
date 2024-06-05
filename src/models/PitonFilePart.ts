@@ -43,6 +43,9 @@ export interface PitonFilePart {
     /** Can be no_results or snapshot */
     expect: string;
 
+    /** Absolute file */
+    filePath: string;
+
     /** Absolute file path of the csv result */
     csvResultPath: string;
     /** Absolute file path of the approved csv snapshot */

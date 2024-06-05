@@ -2,6 +2,10 @@
 
 Feature and bugfixes for each release.
 
+### 0.10.0
+
+* Added summary run screen
+
 ### 0.9.0
 
 * Added snapshot capabilities

@@ -238,25 +238,32 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(onSaveDisposible);
 
 	// Setup summary view
-	const provider = new PitonSummaryViewProvider(context.extensionUri);
-
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(PitonSummaryViewProvider.viewType, provider));
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('piton.showSummary', () => {
-			provider.show();
-		}));
+			PitonSummaryViewProvider.createOrShow(context.extensionUri);
+		})
+	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('calicoColors.addColor', () => {
-			provider.addColor();
-		}));
+		vscode.commands.registerCommand('catCoding.doRefactor', () => {
+			if (PitonSummaryViewProvider.currentPanel) {
+				PitonSummaryViewProvider.currentPanel.doRefactor();
+			}
+		})
+	);
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand('calicoColors.clearColors', () => {
-			provider.clearColors();
-		}));
+	if (vscode.window.registerWebviewPanelSerializer) {
+		// Make sure we register a serializer in activation event
+		vscode.window.registerWebviewPanelSerializer(PitonSummaryViewProvider.viewType, {
+			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
+				console.log(`Got state: ${state}`);
+				// Reset the webview options so we use latest uri for `localResourceRoots`.
+				webviewPanel.webview.options = PitonSummaryViewProvider.getWebviewOptions(context.extensionUri);
+				PitonSummaryViewProvider.revive(webviewPanel, context.extensionUri);
+			}
+		});
+	}
 }
 
 /** Used to clean up the SQL connections */

@@ -177,6 +177,7 @@ function parsePitonComment(filePart: string, order: number, file: string, filePa
         
         expect,
         sanitizedQuery,
+        filePath: filePathAndName,
         csvResultPath,
         snapshotPath,
         newSnapshotPath

@@ -69,6 +69,15 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 
 Feature and bugfixes for each release.
 
+### 0.10.0
+
+* Added summary run screen
+
+### 0.9.0
+
+* Added snapshot capabilities
+* Added approval and deny hot buttons
+
 ### 0.8.4
 
 * Fixed issue parsing files

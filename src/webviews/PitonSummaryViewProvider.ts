@@ -1,90 +1,159 @@
-import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken, Webview } from 'vscode';
-import { getPitonResultSummary } from '../file/file';
-import { map, reduce } from 'lodash';
+import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken, Webview, window, ViewColumn, WebviewPanel, Disposable, WebviewOptions } from 'vscode';
+import { filter, map, reduce, sortBy, values } from 'lodash';
+import { commands } from 'vscode';
+import { getFilePartResult, getFileResultDictionary, getPitonResultSummary } from '../file/file';
+import { PitonResultSummary } from '../models/PitonResultSummary';
+import { PitonFilePartResult } from '../models/PitonFilePartResult';
+
+const cats = {
+	'Coding Cat': 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
+	'Compiling Cat': 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif',
+	'Testing Cat': 'https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif'
+};
 
 /**
- * 
+ * Manages cat coding webview panels
  */
-export class PitonSummaryViewProvider implements WebviewViewProvider {
+export class PitonSummaryViewProvider {
+	/**
+	 * Track the currently panel. Only allow a single panel to exist at a time.
+	 */
+	public static currentPanel: PitonSummaryViewProvider | undefined;
 
-	public static readonly viewType = 'pitonSummaryReport';
+	public static readonly viewType = 'pitonSummary';
 
-	private _view?: WebviewView;
+	private readonly _panel: WebviewPanel;
+	private readonly _extensionUri: Uri;
+	private _disposables: Disposable[] = [];
 
-	constructor(
-		private readonly _extensionUri: Uri,
-	) { }
+	public static createOrShow(extensionUri: Uri) {
+		const column = window.activeTextEditor
+			? window.activeTextEditor.viewColumn
+			: undefined;
 
-	public resolveWebviewView(
-		webviewView: WebviewView,
-		context: WebviewViewResolveContext,
-		_token: CancellationToken,
-	) {
-		this._view = webviewView;
+		// If we already have a panel, show it.
+		if (PitonSummaryViewProvider.currentPanel) {
+			PitonSummaryViewProvider.currentPanel._panel.reveal(column);
+			return;
+		}
 
-		webviewView.webview.options = {
-			// Allow scripts in the webview
-			enableScripts: true,
+		// Otherwise, create a new panel.
+		const panel = window.createWebviewPanel(
+			PitonSummaryViewProvider.viewType,
+			'Piton Summary',
+			column || ViewColumn.One,
+			PitonSummaryViewProvider.getWebviewOptions(extensionUri),
+		);
 
-			localResourceRoots: [
-				this._extensionUri
-			]
-		};
+		PitonSummaryViewProvider.currentPanel = new PitonSummaryViewProvider(panel, extensionUri);
+	}
 
-		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+	public static revive(panel: WebviewPanel, extensionUri: Uri) {
+		PitonSummaryViewProvider.currentPanel = new PitonSummaryViewProvider(panel, extensionUri);
+	}
 
-		webviewView.webview.onDidReceiveMessage(data => {
-			switch (data.type) {
-				case 'colorSelected':
-					{
-						// Do something
-						break;
-					}
+	private constructor(panel: WebviewPanel, extensionUri: Uri) {
+		this._panel = panel;
+		this._extensionUri = extensionUri;
+
+		// Set the webview's initial html content
+		this._update();
+
+		// Listen for when the panel is disposed
+		// This happens when the user closes the panel or when the panel is closed programmatically
+		this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+
+		// Update the content based on view changes
+		this._panel.onDidChangeViewState(
+			e => {
+				if (this._panel.visible) {
+					this._update();
+				}
+			},
+			null,
+			this._disposables
+		);
+
+		// Handle messages from the webview
+		this._panel.webview.onDidReceiveMessage(
+			message => {
+				switch (message.command) {
+					case 'alert':
+						window.showErrorMessage(message.text);
+						return;
+					case 'vscode.open':
+						commands.executeCommand('vscode.open', [message.text]);
+						return;
+				}
+			},
+			null,
+			this._disposables
+		);
+	}
+
+	public doRefactor() {
+		// Send a message to the webview webview.
+		// You can send any JSON serializable data.
+		this._panel.webview.postMessage({ command: 'refactor' });
+	}
+
+	public dispose() {
+		PitonSummaryViewProvider.currentPanel = undefined;
+
+		// Clean up our resources
+		this._panel.dispose();
+
+		while (this._disposables.length) {
+			const x = this._disposables.pop();
+			if (x) {
+				x.dispose();
 			}
-		});
-	}
-
-	public show() {
-		if (this._view) {
-			this._view.show?.(true);
 		}
 	}
 
-	public addColor() {
-		if (this._view) {
-			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
-			this._view.webview.postMessage({ type: 'addColor' });
-		}
+	private _update() {
+		const webview = this._panel.webview;
+		this._panel.title = 'Piton Summary';
+		this._panel.webview.html = this._getHtmlForWebview(webview);
 	}
 
-	public clearColors() {
-		if (this._view) {
-			this._view.webview.postMessage({ type: 'clearColors' });
-		}
-	}
+	private _getHtmlForWebview(webview: Webview) {
+		// Local path to main script run in the webview
+		const scriptPathOnDisk = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'main.js');
+		const chartPathOnDisk = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'chart.js');
 
-	/** Returns a string of HTML to render */
-	private _getHtmlForWebview(webview: Webview): string {
-		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
-		const scriptUri = webview.asWebviewUri(Uri.joinPath(this._extensionUri, 'resources', 'webview', 'main.js'));
+		// And the uri we use to load this script in the webview
+		const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
+		const chartUri = webview.asWebviewUri(chartPathOnDisk);
 
-		// Do the same for the stylesheet.
-		const styleResetUri = webview.asWebviewUri(Uri.joinPath(this._extensionUri, 'resources', 'webview', 'reset.css'));
-		const styleVSCodeUri = webview.asWebviewUri(Uri.joinPath(this._extensionUri, 'resources', 'webview', 'vscode.css'));
-		const styleMainUri = webview.asWebviewUri(Uri.joinPath(this._extensionUri, 'resources', 'webview', 'main.css'));
+		// Local path to css styles
+		const styleResetPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'reset.css');
+		const stylesPathMainPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'main.css');
+		const pitonToReviewIconPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'pitons-file-failure.svg');
+		const bookStackPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'book-stack.svg');
 
-		// Use a nonce to only allow a specific script to be run.
-		const nonce = this._getNonce();
+		// Uri to load styles into webview
+		const stylesResetUri = webview.asWebviewUri(styleResetPath);
+		const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
+		const pitonToReviewIconUri = webview.asWebviewUri(pitonToReviewIconPath);
+		const bookStackUri = webview.asWebviewUri(bookStackPath);
+
+		// Use a nonce to only allow specific scripts to be run
+		const nonce = this.getNonce();
 
 		const pitonResults = getPitonResultSummary() || [];
-		const pitonPassed = reduce<number>(map(pitonResults, r => r.count - r.toBeReviewedCount - r.errorCount), (prev, r) => {
-			if (prev === undefined) { return r; }
-			return prev + r;
-		}) || 0;
-		const pitonTotal = reduce<number>(map(pitonResults, r => r.count), (prev, r) => { 
-			if (prev === undefined) { return r; }
-			return prev + r;
-		}) || 0;
+		const passCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'Pass').length;
+		const failCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'Fail').length;
+		const noRunCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'No Run').length;
+		const skippedCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'Skipped').length;
+		const toReviewCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'To Review').length;
+		const totalCount = pitonResults.length;
+
+		const filePartResults = getFilePartResult() || [];
+
+		const toReviewFiles = sortBy(filter(filePartResults, (r: PitonFilePartResult) => r.result === 'To Review'), r => r.toBeReviewedCount);
+		const toReviewFilePath1 = Uri.parse(`file:${toReviewFiles[0].parsedPart.filePath.replaceAll('\\', '/')}`);
+
 
 		return `<!DOCTYPE html>
 			<html lang="en">
@@ -92,35 +161,87 @@ export class PitonSummaryViewProvider implements WebviewViewProvider {
 				<meta charset="UTF-8">
 
 				<!--
-					Use a content security policy to only allow loading styles from our extension directory,
+					Use a content security policy to only allow loading images from https or from our extension directory,
 					and only allow scripts that have a specific nonce.
-					(See the 'webview-sample' extension sample for img-src content security policy examples)
 				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-				<link href="${styleResetUri}" rel="stylesheet">
-				<link href="${styleVSCodeUri}" rel="stylesheet">
-				<link href="${styleMainUri}" rel="stylesheet">
+				<link href="${stylesResetUri}" rel="stylesheet">
+				<link href="${stylesMainUri}" rel="stylesheet">
 
 				<title>Piton Summary</title>
 			</head>
 			<body>
-				<div>${pitonPassed}/${pitonTotal}
+				<div class="summary">
+					<div class="summary--col summary--col-passfail">
+						<h2>Results</h2>
+						<div>
+							<canvas id="passFailChart"></canvas>
+						</div>
+					</div>
+					<div class="summary--col summary--col-results">
+						<h2>Files To Review</h2>
+						<div class="summary--col--resultsitem ${toReviewFiles.length > 0 ? 'summary--col--resultsitem-hide' : ''}">
+							<span>(no files)</span>
+						</div>
+						<div class="summary--col--resultsitem ${toReviewFiles.length === 0 ? 'summary--col--resultsitem-hide' : ''}">
+							<img src="${pitonToReviewIconUri}"/><a onclick="openVscodeFile('${toReviewFilePath1}')">${toReviewFiles[0]?.parsedPart?.fileName}: ${toReviewFiles[0]?.toBeReviewedCount} rows to review</a>
+						</div>
+						<div class="summary--col--resultsitem ${toReviewFiles.length <= 1 ? 'summary--col--resultsitem-hide' : ''}">
+							<img src="${pitonToReviewIconUri}"/><a onclick="openVscodeFile('${toReviewFiles[1]?.parsedPart?.filePath}')">${toReviewFiles[1]?.parsedPart?.fileName}: ${toReviewFiles[1]?.toBeReviewedCount} rows to review</a>
+						</div>
+						<div class="summary--col--resultsitem ${toReviewFiles.length <= 2 ? 'summary--col--resultsitem-hide' : ''}">
+							<img src="${pitonToReviewIconUri}"/><a onclick="openVscodeFile('${toReviewFiles[2]?.parsedPart?.filePath}')">${toReviewFiles[2]?.parsedPart?.fileName}: ${toReviewFiles[2]?.toBeReviewedCount} rows to review</a>
+						</div>
+						<div class="summary--col--resultsitem ${toReviewFiles.length <= 3 ? 'summary--col--resultsitem-hide' : ''}">
+							<span>(${toReviewFiles.length - 2} more files)</span>
+						</div>
+					</div>
+					<div class="summary--col summary--col-documentation">
+						<h2>Documentation</h2>
+						<div>
+							<img class="summary--col-documentation--img" src="${bookStackUri}" href="https://github.com/JeffSallans/piton/blob/master/documentation.md" target="_blank"/>
+							<a class="summary--col-documentation--link" href="https://github.com/JeffSallans/piton/blob/master/documentation.md" target="_blank">Getting Started</a>
+						</div>
+					</div>
 				</div>
-				<ul class="color-list">
-				</ul>
+				<div class="fileMap">
+					<div class="fileMap--chart">
+						<canvas id="fileMapChart"></canvas>
+					</div>
+				</div>
 
-				<button class="add-color-button">Add Color</button>
+				<script nonce="${nonce}" src="${chartUri}"></script>
+
+				<script nonce="${nonce}">
+  const ctx = document.getElementById('passFailChart');
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Pass', 'Fail', 'To Review', 'No Run'],
+      datasets: [{
+        label: '# of Tests',
+        data: [${passCount}, ${failCount}, ${toReviewCount}, ${noRunCount}],
+		backgroundColor: [
+			'rgb(255, 99, 132)',
+			'rgb(54, 162, 235)',
+			'rgb(255, 205, 86)'
+		],
+		hoverOffset: 4
+      }]
+	}
+  });
+</script>
 
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
 	}
 
-	/** Generate a nonce */
-	private _getNonce(): string {
+	private getNonce() {
 		let text = '';
 		const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 		for (let i = 0; i < 32; i++) {
@@ -128,4 +249,15 @@ export class PitonSummaryViewProvider implements WebviewViewProvider {
 		}
 		return text;
 	}
+
+	public static getWebviewOptions(extensionUri: Uri): WebviewOptions {
+		return {
+			// Enable javascript in the webview
+			enableScripts: true,
+	
+			// And restrict the webview to only loading content from our extension's `media` directory.
+			localResourceRoots: [Uri.joinPath(extensionUri, 'resources', 'webview'), Uri.joinPath(extensionUri, 'resources', 'dark'), Uri.joinPath(extensionUri, 'resources', 'light')]
+		};
+	}
 }
+

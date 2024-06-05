@@ -2,39 +2,58 @@ body {
 	background-color: transparent;
 }
 
-.color-list {
-	list-style: none;
-	padding: 0;
+.summary {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    align-items: flex-start;
+    margin-top: 3rem;
+    /* overflow: hidden; */
 }
 
-.color-entry {
-	width: 100%;
-	display: flex;
-	margin-bottom: 0.4em;
-	border: 1px solid var(--vscode-input-border);
+.summary--col {
+    width: 33vw;
+    min-width: 20rem;
+    /* color: white; */
 }
 
-.color-preview {
-	width: 2em;
-	height: 2em;
+.summary--col h2 {
+    text-align: center;
+    margin-bottom: .5rem;
 }
 
-.color-preview:hover {
-	outline: inset white;
+.summary--col.summary--col-documentation--img {
+    width: 12rem;
 }
 
-.color-input {
-	display: block;
-	flex: 1;
-	width: 100%;
-	color: var(--vscode-input-foreground);
-	background-color: var(--vscode-input-background);
-	border: none;
-	padding: 0 0.6em;
+.summary--col.summary--col-documentation div {
+    width: 12rem;
+    margin: 0 auto;
+    text-align: center;
+    font-size: large;
 }
 
-.add-color-button {
-	display: block;
-	border: none;
-	margin: 0 auto;
+.summary--col a {
+    color: whitesmoke;
+	cursor: pointer;
+}
+
+.summary--col a:hover {
+    color: #e5e4e4;
+}
+
+.summary--col--resultsitem.summary--col--resultsitem-hide {
+    display: none;
+}
+
+.summary--col--resultsitem img {
+    width: 1.2rem;
+    margin-bottom: -4px;
+    margin-right: 3px;
+}
+
+.summary--col--resultsitem {
+    font-size: 1.1rem;
+	margin-left: 5px;
 }

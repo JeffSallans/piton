@@ -2,7 +2,7 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "icon": "./resources/pitons.png",
   "repository": {
     "url": "https://github.com/JeffSallans/piton"
@@ -60,12 +60,8 @@
         "title": "Piton Show Summary"
       },
       {
-        "command": "calicoColors.addColor",
-        "title": "Add Color"
-      },
-      {
-        "command": "calicoColors.clearColors",
-        "title": "Clear Colors"
+        "command": "catCoding.doRefactor",
+        "title": "Piton Webview Refactor"
       },
       {
         "command": "piton.approveFilePart",
@@ -89,12 +85,6 @@
     },
     "views": {
       "piton-explorer": [
-        {
-          "type": "webview",
-          "id": "pitonSummaryReport",
-          "icon": "resources/dark/pitons.svg",
-          "name": "Piton Summary"
-        },
         {
           "id": "pitonFiles",
           "name": "Piton Files",

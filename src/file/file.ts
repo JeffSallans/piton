@@ -4,7 +4,7 @@ import { PitonFile } from "../models/PitonFile";
 import { getFile, getFileFromDoc } from "./file-parser";
 import { runFile } from "./file-runner";
 import { getResultSummary, updateFileResults, updateResultsSummary } from "./file-render";
-import { Dictionary, ceil, floor, forEach, keyBy, keys, map, values } from "lodash";
+import { Dictionary, ceil, flatten, floor, forEach, keyBy, keys, map, unzip, values, zip } from "lodash";
 import { glob } from "glob";
 import path from "path";
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
@@ -28,6 +28,11 @@ export function getFileDictionary(): Dictionary<PitonFile | null> {
 /** Return all piton files results keyed by file name */
 export function getFileResultDictionary(): Dictionary<PitonFileResult> {
     return fileResultData;
+}
+
+/** Return all piton file part results */
+export function getFilePartResult(): PitonFilePartResult[] {
+    return flatten(map(values(fileResultData), f => f.filePartResults));
 }
 
 

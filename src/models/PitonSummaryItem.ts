@@ -27,9 +27,9 @@ export class PitonSummaryItem extends vscode.TreeItem {
 
 		const absFilePath = `file:${path.join(rootPath.replaceAll('\\', '/'), 'result.piton.csv')}`;
 		this.command = {
-			command: 'vscode.open',
+			command: 'piton.showSummary',
 			title: 'Open Summary',
-			arguments: [vscode.Uri.parse(absFilePath)]
+			arguments: []
 		};
 	}
 
