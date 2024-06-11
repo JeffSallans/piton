@@ -1,18 +1,12 @@
-import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken, Webview, window, ViewColumn, WebviewPanel, Disposable, WebviewOptions } from 'vscode';
-import { filter, map, reduce, sortBy, values } from 'lodash';
+import { Uri, Webview, window, ViewColumn, WebviewPanel, Disposable, WebviewOptions } from 'vscode';
+import { defaultTo, filter, map, max, sortBy, values } from 'lodash';
 import { commands } from 'vscode';
 import { getFilePartResult, getFileResultDictionary, getPitonResultSummary } from '../file/file';
 import { PitonResultSummary } from '../models/PitonResultSummary';
 import { PitonFilePartResult } from '../models/PitonFilePartResult';
 
-const cats = {
-	'Coding Cat': 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
-	'Compiling Cat': 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif',
-	'Testing Cat': 'https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif'
-};
-
 /**
- * Manages cat coding webview panels
+ * The summary report webview panels
  */
 export class PitonSummaryViewProvider {
 	/**
@@ -25,6 +19,8 @@ export class PitonSummaryViewProvider {
 	private readonly _panel: WebviewPanel;
 	private readonly _extensionUri: Uri;
 	private _disposables: Disposable[] = [];
+
+	private pitonToReviewIconUri: string;
 
 	public static createOrShow(extensionUri: Uri) {
 		const column = window.activeTextEditor
@@ -90,12 +86,53 @@ export class PitonSummaryViewProvider {
 			null,
 			this._disposables
 		);
+
+		this.pitonToReviewIconUri = '';
 	}
 
-	public doRefactor() {
+	public doRerender() {
+
+		// Get Pass/Fail Counts
+		const pitonResults = getPitonResultSummary() || [];
+		const passCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'Pass').length;
+		const failCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'Fail').length;
+		const noRunCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'No Run').length;
+		const skippedCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'Skipped').length;
+		const toReviewCount = filter(pitonResults, (s: PitonResultSummary) => s.result === 'To Review').length;
+		const totalCount = pitonResults.length;
+
+		// Get toReviewFiles
+		const filePartResults = getFilePartResult() || [];
+		const toReviewFiles = sortBy(filter(filePartResults, (r: PitonFilePartResult) => r.result === 'To Review'), r => r.toBeReviewedCount);
+
+		// Get file minimap data
+		const fileResults = values(getFileResultDictionary());
+		const fileMinimap = map(fileResults, r => {
+			const errorAndToReviewCounts = map(r.filePartResults, partResult => partResult.errorCount + partResult.toBeReviewedCount);
+			const maxErrorsAndToReview = max(errorAndToReviewCounts) || 0;
+
+			return {
+				label: r.parsedFile.name,
+				filePath: `${r.parsedFile.parts[0].filePath}`,
+				x: defaultTo((1.0 - (maxErrorsAndToReview/r.count)) * 100.0, 0),
+				y: r.filePartResults.length,
+				r: 10
+			};
+		});
+		const fileMinimapLabels = map(fileMinimap, m => m.label);
+
 		// Send a message to the webview webview.
 		// You can send any JSON serializable data.
-		this._panel.webview.postMessage({ command: 'refactor' });
+		this._panel.webview.postMessage({
+			command: 'rerender',
+			passCount,
+			failCount,
+			toReviewCount,
+			pitonToReviewIconUri: this.pitonToReviewIconUri,
+			toReviewFiles,
+			fileMinimap,
+			fileMinimapLabels,
+		});
 	}
 
 	public dispose() {
@@ -116,6 +153,7 @@ export class PitonSummaryViewProvider {
 		const webview = this._panel.webview;
 		this._panel.title = 'Piton Summary';
 		this._panel.webview.html = this._getHtmlForWebview(webview);
+		this.doRerender();
 	}
 
 	private _getHtmlForWebview(webview: Webview) {
@@ -139,11 +177,12 @@ export class PitonSummaryViewProvider {
 		// Uri to load styles into webview
 		const stylesResetUri = webview.asWebviewUri(styleResetPath);
 		const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
-		const pitonToReviewIconUri = webview.asWebviewUri(pitonToReviewIconPath);
 		const bookStackUri = webview.asWebviewUri(bookStackPath);
 		const githubIconUri = webview.asWebviewUri(githubIconPath);
 		const feedbackIconUri = webview.asWebviewUri(feedbackIconPath);
 		const issueIconUri = webview.asWebviewUri(issueIconPath);
+
+		this.pitonToReviewIconUri = webview.asWebviewUri(pitonToReviewIconPath).toString();
 
 		// Use a nonce to only allow specific scripts to be run
 		const nonce = this.getNonce();
@@ -186,25 +225,10 @@ export class PitonSummaryViewProvider {
 							<canvas id="passFailChart"></canvas>
 						</div>
 					</div>
-					<div class="summary--col summary--col-results">
+					<div id="filesToReview" class="summary--col summary--col-results">
 						<h2>Files To Review</h2>
-						<div class="summary--col--resultsitem ${toReviewFiles.length > 0 ? 'summary--col--resultsitem-hide' : ''}">
+						<div class="summary--col--resultsitem">
 							<span>(no files)</span>
-						</div>
-						<div class="summary--col--resultsitem ${toReviewFiles.length === 0 ? 'summary--col--resultsitem-hide' : ''}">
-							<img src="${pitonToReviewIconUri}"/>
-							<a class="review-file1-button" pnFilePath="${toReviewFiles[0]?.resultFilePath}">${toReviewFiles[0]?.parsedPart?.fileName}:${toReviewFiles[0]?.parsedPart?.name || `Check${toReviewFiles[0]?.parsedPart?.order}`} <i>${toReviewFiles[0]?.toBeReviewedCount} rows to review</i></a>
-						</div>
-						<div class="summary--col--resultsitem ${toReviewFiles.length <= 1 ? 'summary--col--resultsitem-hide' : ''}">
-							<img src="${pitonToReviewIconUri}"/>
-							<a class="review-file1-button" pnFilePath="${toReviewFiles[1]?.resultFilePath}">${toReviewFiles[1]?.parsedPart?.fileName}:${toReviewFiles[0]?.parsedPart?.name || `Check${toReviewFiles[0]?.parsedPart?.order}`} <i>${toReviewFiles[0]?.toBeReviewedCount} rows to review</i></a>
-						</div>
-						<div class="summary--col--resultsitem ${toReviewFiles.length <= 2 ? 'summary--col--resultsitem-hide' : ''}">
-							<img src="${pitonToReviewIconUri}"/>
-							<a class="review-file1-button" pnFilePath="${toReviewFiles[2]?.resultFilePath}">${toReviewFiles[2]?.parsedPart?.fileName}:${toReviewFiles[0]?.parsedPart?.name || `Check${toReviewFiles[0]?.parsedPart?.order}`} <i>${toReviewFiles[0]?.toBeReviewedCount} rows to review</i></a>
-						</div>
-						<div class="summary--col--resultsitem ${toReviewFiles.length <= 3 ? 'summary--col--resultsitem-hide' : ''}">
-							<span>(${toReviewFiles.length - 2} more files)</span>
 						</div>
 					</div>
 				</div>
@@ -225,28 +249,6 @@ export class PitonSummaryViewProvider {
 				</div>
 
 				<script nonce="${nonce}" src="${chartUri}"></script>
-
-				<script nonce="${nonce}">
-  const ctx = document.getElementById('passFailChart');
-
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Pass', 'Fail', 'To Review'],
-      datasets: [{
-        label: '# of Tests',
-        data: [${passCount}, ${failCount}, ${toReviewCount}],
-		backgroundColor: [
-			'rgb(54, 162, 235)',
-			'rgb(255, 99, 132)',
-			'rgb(255, 205, 86)'
-		],
-		borderColor: 'rgba(0, 0, 0, 0.9)',
-		hoverOffset: 4
-      }]
-	}
-  });
-</script>
 
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>

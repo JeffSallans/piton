@@ -2,6 +2,10 @@
 
 Feature and bugfixes for each release.
 
+### 0.11.0
+
+* Added file minimap report
+
 ### 0.10.1
 
 * Minor chart color changes

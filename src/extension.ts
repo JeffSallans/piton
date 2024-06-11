@@ -93,6 +93,9 @@ export function activate(context: vscode.ExtensionContext) {
 			// Render
 			await renderResults(rootPath);
 			testTreeDataProvider.refresh();
+			if (PitonSummaryViewProvider.currentPanel) {
+				PitonSummaryViewProvider.currentPanel.doRerender();
+			}
 		
 			await Promise.resolve();
 		
@@ -110,6 +113,9 @@ export function activate(context: vscode.ExtensionContext) {
 		// Render
 		await renderResults(rootPath);
 		testTreeDataProvider.refresh();
+		if (PitonSummaryViewProvider.currentPanel) {
+			PitonSummaryViewProvider.currentPanel.doRerender();
+		}
 	});
 	context.subscriptions.push(parseAllDisposable);
 
@@ -130,6 +136,9 @@ export function activate(context: vscode.ExtensionContext) {
 			// Render
 			await renderResults(rootPath);
 			testTreeDataProvider.refresh();
+			if (PitonSummaryViewProvider.currentPanel) {
+				PitonSummaryViewProvider.currentPanel.doRerender();
+			}
 
 			await Promise.resolve();
 		
@@ -146,6 +155,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Render
 		testTreeDataProvider.refresh();
+		if (PitonSummaryViewProvider.currentPanel) {
+			PitonSummaryViewProvider.currentPanel.doRerender();
+		}
 	});
 	context.subscriptions.push(createExampleDisposable);
 
@@ -166,6 +178,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// Render exceptions
 			testTreeDataProvider.refresh();
+			if (PitonSummaryViewProvider.currentPanel) {
+				PitonSummaryViewProvider.currentPanel.doRerender();
+			}
 			progress.report({  increment: 100 });
 		});
 	});
@@ -188,6 +203,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// Render exceptions
 			testTreeDataProvider.refresh();
+			if (PitonSummaryViewProvider.currentPanel) {
+				PitonSummaryViewProvider.currentPanel.doRerender();
+			}
+
 			progress.report({  increment: 100 });
 		});
 	});
@@ -246,9 +265,9 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('catCoding.doRefactor', () => {
+		vscode.commands.registerCommand('piton.doRerender', () => {
 			if (PitonSummaryViewProvider.currentPanel) {
-				PitonSummaryViewProvider.currentPanel.doRefactor();
+				PitonSummaryViewProvider.currentPanel.doRerender();
 			}
 		})
 	);

@@ -2,7 +2,7 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "icon": "./resources/pitons.png",
   "repository": {
     "url": "https://github.com/JeffSallans/piton"
@@ -60,8 +60,8 @@
         "title": "Piton Show Summary"
       },
       {
-        "command": "catCoding.doRefactor",
-        "title": "Piton Webview Refactor"
+        "command": "piton.doRerender",
+        "title": "Piton Webview Rerender"
       },
       {
         "command": "piton.approveFilePart",

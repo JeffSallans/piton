@@ -12,7 +12,7 @@ body {
 }
 
 .summary--col {
-    width: 33vw;
+    width: 40vw;
     min-width: 20rem;
     /* color: white; */
 }
@@ -52,7 +52,7 @@ body {
 }
 
 .summary--col.summary--col-results {
-    width: 67vw;
+    width: 60vw;
 }
 
 .links {
@@ -65,7 +65,7 @@ body {
 }
 
 img.links--col--img {
-    width: 5rem;
+    width: 4rem;
 }
 
 img.links--col--img:hover {
@@ -74,4 +74,9 @@ img.links--col--img:hover {
     -moz-filter: grayscale(100%);
     -ms-filter: grayscale(100%);
     -o-filter: grayscale(100%);
+}
+
+.fileMap--chart {
+    height: 25rem;
+    width: 100vw;
 }
