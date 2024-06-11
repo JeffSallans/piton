@@ -5,12 +5,19 @@
 (function () {
     const vscode = acquireVsCodeApi();
 
-    window.openVscodeFile = function(filePath) {
+    openVscodeFile = function(filePath) {
         vscode.postMessage({
             command: 'vscode.open',
             text: filePath
         });
     };
+
+    const button = document.querySelector('.review-file1-button')
+    button.addEventListener('click', () => {
+        const pnFilePath = button.getAttribute('pnFilePath');
+        console.log('openning file: ' + pnFilePath);
+        openVscodeFile(pnFilePath);
+    });
 
     // Handle messages sent from the extension to the webview
     window.addEventListener('message', event => {

@@ -69,6 +69,10 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 
 Feature and bugfixes for each release.
 
+### 0.10.1
+
+* Minor chart color changes
+
 ### 0.10.0
 
 * Added summary run screen
@@ -107,6 +111,8 @@ Ready to review by co-workers
 ## Following extension guidelines
 
 Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+
+Primary Style Color: #ADBBD8
 
 * [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
 

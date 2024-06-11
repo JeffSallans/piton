@@ -8,8 +8,7 @@ body {
     flex-wrap: nowrap;
     justify-content: space-around;
     align-items: flex-start;
-    margin-top: 3rem;
-    /* overflow: hidden; */
+    margin-top: 1.5rem;
 }
 
 .summary--col {
@@ -21,17 +20,6 @@ body {
 .summary--col h2 {
     text-align: center;
     margin-bottom: .5rem;
-}
-
-.summary--col.summary--col-documentation--img {
-    width: 12rem;
-}
-
-.summary--col.summary--col-documentation div {
-    width: 12rem;
-    margin: 0 auto;
-    text-align: center;
-    font-size: large;
 }
 
 .summary--col a {
@@ -56,4 +44,34 @@ body {
 .summary--col--resultsitem {
     font-size: 1.1rem;
 	margin-left: 5px;
+}
+
+.summary--col.summary--col-passfail div {
+    max-width: 20rem;
+    margin: 0 auto;
+}
+
+.summary--col.summary--col-results {
+    width: 67vw;
+}
+
+.links {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+img.links--col--img {
+    width: 5rem;
+}
+
+img.links--col--img:hover {
+    filter: grayscale(100%);
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
 }

@@ -82,7 +82,8 @@ export class PitonSummaryViewProvider {
 						window.showErrorMessage(message.text);
 						return;
 					case 'vscode.open':
-						commands.executeCommand('vscode.open', [message.text]);
+						const uri = Uri.parse(`file:${message.text.replaceAll('\\', '/')}`);
+						commands.executeCommand('vscode.open', uri);
 						return;
 				}
 			},
@@ -130,13 +131,19 @@ export class PitonSummaryViewProvider {
 		const styleResetPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'reset.css');
 		const stylesPathMainPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'main.css');
 		const pitonToReviewIconPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'pitons-file-failure.svg');
-		const bookStackPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'book-stack.svg');
+		const bookStackPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'doc-icon.svg');
+		const githubIconPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'github-icon.svg');
+		const feedbackIconPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'feedback-icon.svg');
+		const issueIconPath = Uri.joinPath(this._extensionUri, 'resources', 'webview', 'issue-icon.svg');
 
 		// Uri to load styles into webview
 		const stylesResetUri = webview.asWebviewUri(styleResetPath);
 		const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
 		const pitonToReviewIconUri = webview.asWebviewUri(pitonToReviewIconPath);
 		const bookStackUri = webview.asWebviewUri(bookStackPath);
+		const githubIconUri = webview.asWebviewUri(githubIconPath);
+		const feedbackIconUri = webview.asWebviewUri(feedbackIconPath);
+		const issueIconUri = webview.asWebviewUri(issueIconPath);
 
 		// Use a nonce to only allow specific scripts to be run
 		const nonce = this.getNonce();
@@ -152,8 +159,6 @@ export class PitonSummaryViewProvider {
 		const filePartResults = getFilePartResult() || [];
 
 		const toReviewFiles = sortBy(filter(filePartResults, (r: PitonFilePartResult) => r.result === 'To Review'), r => r.toBeReviewedCount);
-		const toReviewFilePath1 = Uri.parse(`file:${toReviewFiles[0].parsedPart.filePath.replaceAll('\\', '/')}`);
-
 
 		return `<!DOCTYPE html>
 			<html lang="en">
@@ -187,23 +192,29 @@ export class PitonSummaryViewProvider {
 							<span>(no files)</span>
 						</div>
 						<div class="summary--col--resultsitem ${toReviewFiles.length === 0 ? 'summary--col--resultsitem-hide' : ''}">
-							<img src="${pitonToReviewIconUri}"/><a onclick="openVscodeFile('${toReviewFilePath1}')">${toReviewFiles[0]?.parsedPart?.fileName}: ${toReviewFiles[0]?.toBeReviewedCount} rows to review</a>
+							<img src="${pitonToReviewIconUri}"/>
+							<a class="review-file1-button" pnFilePath="${toReviewFiles[0]?.resultFilePath}">${toReviewFiles[0]?.parsedPart?.fileName}:${toReviewFiles[0]?.parsedPart?.name || `Check${toReviewFiles[0]?.parsedPart?.order}`} <i>${toReviewFiles[0]?.toBeReviewedCount} rows to review</i></a>
 						</div>
 						<div class="summary--col--resultsitem ${toReviewFiles.length <= 1 ? 'summary--col--resultsitem-hide' : ''}">
-							<img src="${pitonToReviewIconUri}"/><a onclick="openVscodeFile('${toReviewFiles[1]?.parsedPart?.filePath}')">${toReviewFiles[1]?.parsedPart?.fileName}: ${toReviewFiles[1]?.toBeReviewedCount} rows to review</a>
+							<img src="${pitonToReviewIconUri}"/>
+							<a class="review-file1-button" pnFilePath="${toReviewFiles[1]?.resultFilePath}">${toReviewFiles[1]?.parsedPart?.fileName}:${toReviewFiles[0]?.parsedPart?.name || `Check${toReviewFiles[0]?.parsedPart?.order}`} <i>${toReviewFiles[0]?.toBeReviewedCount} rows to review</i></a>
 						</div>
 						<div class="summary--col--resultsitem ${toReviewFiles.length <= 2 ? 'summary--col--resultsitem-hide' : ''}">
-							<img src="${pitonToReviewIconUri}"/><a onclick="openVscodeFile('${toReviewFiles[2]?.parsedPart?.filePath}')">${toReviewFiles[2]?.parsedPart?.fileName}: ${toReviewFiles[2]?.toBeReviewedCount} rows to review</a>
+							<img src="${pitonToReviewIconUri}"/>
+							<a class="review-file1-button" pnFilePath="${toReviewFiles[2]?.resultFilePath}">${toReviewFiles[2]?.parsedPart?.fileName}:${toReviewFiles[0]?.parsedPart?.name || `Check${toReviewFiles[0]?.parsedPart?.order}`} <i>${toReviewFiles[0]?.toBeReviewedCount} rows to review</i></a>
 						</div>
 						<div class="summary--col--resultsitem ${toReviewFiles.length <= 3 ? 'summary--col--resultsitem-hide' : ''}">
 							<span>(${toReviewFiles.length - 2} more files)</span>
 						</div>
 					</div>
-					<div class="summary--col summary--col-documentation">
-						<h2>Documentation</h2>
+				</div>
+				<div class="links">
+					<div class="links--col">
 						<div>
-							<img class="summary--col-documentation--img" src="${bookStackUri}" href="https://github.com/JeffSallans/piton/blob/master/documentation.md" target="_blank"/>
-							<a class="summary--col-documentation--link" href="https://github.com/JeffSallans/piton/blob/master/documentation.md" target="_blank">Getting Started</a>
+							<a title="Documentation" href="https://github.com/JeffSallans/piton/blob/master/documentation.md" target="_blank"><img class="links--col--img" src="${bookStackUri}" /></a>
+							<a title="Github" href="https://github.com/JeffSallans/piton" target="_blank"><img class="links--col--img" src="${githubIconUri}" /></a>
+							<a title="Report an issue" href="https://github.com/JeffSallans/piton/issues/new" target="_blank"><img class="links--col--img" src="${issueIconUri}"/></a>
+							<a title="Give Feedback" href="https://forms.gle/q6QHgYXA2x73Muv29" target="_blank"><img class="links--col--img" src="${feedbackIconUri}" /></a>
 						</div>
 					</div>
 				</div>
@@ -221,15 +232,16 @@ export class PitonSummaryViewProvider {
   new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Pass', 'Fail', 'To Review', 'No Run'],
+      labels: ['Pass', 'Fail', 'To Review'],
       datasets: [{
         label: '# of Tests',
-        data: [${passCount}, ${failCount}, ${toReviewCount}, ${noRunCount}],
+        data: [${passCount}, ${failCount}, ${toReviewCount}],
 		backgroundColor: [
-			'rgb(255, 99, 132)',
 			'rgb(54, 162, 235)',
+			'rgb(255, 99, 132)',
 			'rgb(255, 205, 86)'
 		],
+		borderColor: 'rgba(0, 0, 0, 0.9)',
 		hoverOffset: 4
       }]
 	}
