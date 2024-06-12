@@ -108,7 +108,7 @@ export class PitonSummaryViewProvider {
 		// Get file minimap data
 		const fileResults = values(getFileResultDictionary());
 		const fileMinimap = map(fileResults, r => {
-			const errorAndToReviewCounts = map(r.filePartResults, partResult => partResult.errorCount + partResult.toBeReviewedCount);
+			const errorAndToReviewCounts = map(r.filePartResults, partResult => partResult.errorCount);
 			const maxErrorsAndToReview = max(errorAndToReviewCounts) || 0;
 
 			return {
