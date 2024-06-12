@@ -9,6 +9,14 @@
     const passFailChartElement = document.getElementById('passFailChart');
     const passFailChart = new Chart(passFailChartElement, {
       type: 'doughnut',
+      options: {
+        aspectRatio: 1.5,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+      },
       data: {
         labels: ['Pass', 'Fail', 'Review'],
         datasets: [{
@@ -39,6 +47,12 @@
             }]
         },
         options: {
+            aspectRatio: 4.5,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
             onClick: (e, activeElementList) => {
                 let datasetIndex = activeElementList[0].datasetIndex;
                 let dataIndex = activeElementList[0].index;
@@ -105,14 +119,22 @@
         </div>
         <div class="summary--col--resultsitem ${toReviewFiles.length <= 1 ? 'summary--col--resultsitem-hide' : ''}">
             <img src="${pitonToReviewIconUri}"/>
-            <a class="review-file-button" pnFilePath="${toReviewFiles[1]?.resultFilePath}">${toReviewFiles[1]?.parsedPart?.fileName}:${toReviewFiles[0]?.parsedPart?.name || `Check${toReviewFiles[0]?.parsedPart?.order}`} <i>${toReviewFiles[0]?.toBeReviewedCount} rows to review</i></a>
+            <a class="review-file-button" pnFilePath="${toReviewFiles[1]?.resultFilePath}">${toReviewFiles[1]?.parsedPart?.fileName}:${toReviewFiles[1]?.parsedPart?.name || `Check${toReviewFiles[1]?.parsedPart?.order}`} <i>${toReviewFiles[1]?.toBeReviewedCount} rows to review</i></a>
         </div>
         <div class="summary--col--resultsitem ${toReviewFiles.length <= 2 ? 'summary--col--resultsitem-hide' : ''}">
             <img src="${pitonToReviewIconUri}"/>
-            <a class="review-file-button" pnFilePath="${toReviewFiles[2]?.resultFilePath}">${toReviewFiles[2]?.parsedPart?.fileName}:${toReviewFiles[0]?.parsedPart?.name || `Check${toReviewFiles[0]?.parsedPart?.order}`} <i>${toReviewFiles[0]?.toBeReviewedCount} rows to review</i></a>
+            <a class="review-file-button" pnFilePath="${toReviewFiles[2]?.resultFilePath}">${toReviewFiles[2]?.parsedPart?.fileName}:${toReviewFiles[2]?.parsedPart?.name || `Check${toReviewFiles[2]?.parsedPart?.order}`} <i>${toReviewFiles[2]?.toBeReviewedCount} rows to review</i></a>
         </div>
         <div class="summary--col--resultsitem ${toReviewFiles.length <= 3 ? 'summary--col--resultsitem-hide' : ''}">
-            <span>(${toReviewFiles.length - 2} more files)</span>
+            <img src="${pitonToReviewIconUri}"/>
+            <a class="review-file-button" pnFilePath="${toReviewFiles[3]?.resultFilePath}">${toReviewFiles[3]?.parsedPart?.fileName}:${toReviewFiles[3]?.parsedPart?.name || `Check${toReviewFiles[3]?.parsedPart?.order}`} <i>${toReviewFiles[3]?.toBeReviewedCount} rows to review</i></a>
+        </div>
+        <div class="summary--col--resultsitem ${toReviewFiles.length <= 4 ? 'summary--col--resultsitem-hide' : ''}">
+            <img src="${pitonToReviewIconUri}"/>
+            <a class="review-file-button" pnFilePath="${toReviewFiles[4]?.resultFilePath}">${toReviewFiles[4]?.parsedPart?.fileName}:${toReviewFiles[4]?.parsedPart?.name || `Check${toReviewFiles[4]?.parsedPart?.order}`} <i>${toReviewFiles[4]?.toBeReviewedCount} rows to review</i></a>
+        </div>
+        <div class="summary--col--resultsitem ${toReviewFiles.length <= 3 ? 'summary--col--resultsitem-hide' : ''}">
+            <span>(${toReviewFiles.length - 5} more files)</span>
         </div>`;
 
         toReviewFileElement.innerHTML = html;

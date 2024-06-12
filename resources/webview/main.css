@@ -2,24 +2,27 @@ body {
 	background-color: transparent;
 }
 
+h2 {
+    text-align: left;
+    margin-bottom: 0.5rem;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-bottom: solid #ADBBD8 2px;
+    color: #ADBBD8;
+}
+
 .summary {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: space-around;
     align-items: flex-start;
-    margin-top: 1.5rem;
 }
 
 .summary--col {
-    width: 40vw;
+    width: 30vw;
     min-width: 20rem;
-    /* color: white; */
-}
-
-.summary--col h2 {
-    text-align: center;
-    margin-bottom: .5rem;
+    max-height: 18rem;
 }
 
 .summary--col a {
@@ -47,25 +50,30 @@ body {
 }
 
 .summary--col.summary--col-passfail div {
+    position: relative;
     max-width: 20rem;
+    max-height: 15rem;
     margin: 0 auto;
 }
 
 .summary--col.summary--col-results {
-    width: 60vw;
+    width: 70vw;
 }
 
 .links {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     align-content: center;
+    margin-top: 5px;
+    margin: 5px;
 }
 
 img.links--col--img {
-    width: 4rem;
+    width: 2.5rem;
+    margin-left: 3px;
 }
 
 img.links--col--img:hover {
@@ -77,6 +85,8 @@ img.links--col--img:hover {
 }
 
 .fileMap--chart {
-    height: 25rem;
-    width: 100vw;
+    position: relative;
+    width: 96vw;
+    margin: 0 auto;
+    padding: 3px;
 }

@@ -116,7 +116,7 @@ export class PitonSummaryViewProvider {
 				filePath: `${r.parsedFile.parts[0].filePath}`,
 				x: defaultTo((1.0 - (maxErrorsAndToReview/r.count)) * 100.0, 0),
 				y: r.filePartResults.length,
-				r: 10
+				r: 7
 			};
 		});
 		const fileMinimapLabels = map(fileMinimap, m => m.label);
@@ -218,6 +218,16 @@ export class PitonSummaryViewProvider {
 				<title>Piton Summary</title>
 			</head>
 			<body>
+				<div class="links">
+					<div class="links--col">
+						<div>
+							<a title="Documentation" href="https://github.com/JeffSallans/piton/blob/master/documentation.md" target="_blank"><img class="links--col--img" src="${bookStackUri}" /></a>
+							<a title="Github" href="https://github.com/JeffSallans/piton" target="_blank"><img class="links--col--img" src="${githubIconUri}" /></a>
+							<a title="Report an issue" href="https://github.com/JeffSallans/piton/issues/new" target="_blank"><img class="links--col--img" src="${issueIconUri}"/></a>
+							<a title="Give Feedback" href="https://forms.gle/q6QHgYXA2x73Muv29" target="_blank"><img class="links--col--img" src="${feedbackIconUri}" /></a>
+						</div>
+					</div>
+				</div>
 				<div class="summary">
 					<div class="summary--col summary--col-passfail">
 						<h2>Results</h2>
@@ -232,17 +242,8 @@ export class PitonSummaryViewProvider {
 						</div>
 					</div>
 				</div>
-				<div class="links">
-					<div class="links--col">
-						<div>
-							<a title="Documentation" href="https://github.com/JeffSallans/piton/blob/master/documentation.md" target="_blank"><img class="links--col--img" src="${bookStackUri}" /></a>
-							<a title="Github" href="https://github.com/JeffSallans/piton" target="_blank"><img class="links--col--img" src="${githubIconUri}" /></a>
-							<a title="Report an issue" href="https://github.com/JeffSallans/piton/issues/new" target="_blank"><img class="links--col--img" src="${issueIconUri}"/></a>
-							<a title="Give Feedback" href="https://forms.gle/q6QHgYXA2x73Muv29" target="_blank"><img class="links--col--img" src="${feedbackIconUri}" /></a>
-						</div>
-					</div>
-				</div>
 				<div class="fileMap">
+					<h2>File Landscape</h2>
 					<div class="fileMap--chart">
 						<canvas id="fileMapChart"></canvas>
 					</div>
