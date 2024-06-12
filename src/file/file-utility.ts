@@ -1,4 +1,4 @@
-import { filter, keyBy, map, set, get, some, keys, every, sum } from "lodash";
+import { filter, keyBy, map, set, get, some, keys, every, sum, defaultTo } from "lodash";
 import * as fs from 'fs';
 import dayjs from "dayjs";
 import { csv2json, json2csv } from "json-2-csv";
@@ -52,7 +52,7 @@ export function areRowsEqual(newRow: object, oldRow: object, ignoreCols?: string
     const allMatch = every(fields, (f) => {
         if (ignoreCols !== undefined && ignoreCols.includes(f)) { return true; }
 
-        const fieldMatches = (get(newRow, f, '') === get(oldRow, f, ''));
+        const fieldMatches = (defaultTo(get(newRow, f), '') === defaultTo(get(oldRow, f), ''));
         return fieldMatches;
     });
     return allMatch;
@@ -60,6 +60,8 @@ export function areRowsEqual(newRow: object, oldRow: object, ignoreCols?: string
 
 /** Writes the json object to the given file path. If a file exists, the file is overwritten */
 export function createCSVFile(filePath: string, data: object[]) {
-    const csvString = json2csv(data, {});
+    const csvString = json2csv(data, {
+        emptyFieldValue: '',
+    });
     fs.writeFileSync(filePath, csvString);
 }
