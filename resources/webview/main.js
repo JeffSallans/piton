@@ -133,7 +133,7 @@
             <img src="${pitonToReviewIconUri}"/>
             <a class="review-file-button" pnFilePath="${toReviewFiles[4]?.resultFilePath}">${toReviewFiles[4]?.parsedPart?.fileName}:${toReviewFiles[4]?.parsedPart?.name || `Check${toReviewFiles[4]?.parsedPart?.order}`} <i>${toReviewFiles[4]?.toBeReviewedCount} rows to review</i></a>
         </div>
-        <div class="summary--col--resultsitem ${toReviewFiles.length <= 3 ? 'summary--col--resultsitem-hide' : ''}">
+        <div class="summary--col--resultsitem ${toReviewFiles.length <= 5 ? 'summary--col--resultsitem-hide' : ''}">
             <span>(${toReviewFiles.length - 5} more files)</span>
         </div>`;
 
