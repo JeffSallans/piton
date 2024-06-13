@@ -50,6 +50,7 @@ where name is null or name = ''
 * oracle
 * duckdb
 * sqlite
+* sqlserver
 
 ```sql
 -- pn-sqlDialect postgres

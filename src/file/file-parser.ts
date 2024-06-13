@@ -62,7 +62,7 @@ export async function getFile(filePath: string, fileName: string, text: string, 
     }
 
     // Check valid dialects
-    const validDialects = ['postgres', 'duckdb', 'sqlite', 'oracle'];
+    const validDialects = ['postgres', 'duckdb', 'sqlite', 'oracle', 'sqlserver'];
     if (!validDialects.includes(sqlDialect)) {
         PitonLanguageClient.addDiagnosticErrors(filePathAndName, new Range(0, 0, 0, 100), `invalid pn-sqlDialect given ${sqlDialect} expecting one of ${validDialects.concat(', ')}`);
         OutputChannelLogger.error(`====== SYNTAX ERROR ======\n invalid pn-sqlDialect given ${sqlDialect} expecting one of ${validDialects.concat(', ')} \n${text}`, true);

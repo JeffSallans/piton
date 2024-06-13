@@ -2,7 +2,7 @@
   "name": "piton",
   "displayName": "Piton",
   "description": "Simple SQL quality checking tool",
-  "version": "0.11.3",
+  "version": "0.11.5",
   "icon": "./resources/pitons.png",
   "repository": {
     "url": "https://github.com/JeffSallans/piton"
@@ -163,6 +163,7 @@
     "@esbuilder/html": "^0.0.6",
     "@types/lodash": "^4.17.0",
     "@types/mocha": "^10.0.6",
+    "@types/mssql": "^9.1.5",
     "@types/node": "18.x",
     "@types/oracledb": "^6.4.0",
     "@types/pg": "^8.11.5",

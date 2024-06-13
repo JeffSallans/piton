@@ -97,9 +97,26 @@ id  name    approved
             label: 'pn-connectionString',
             insertText: 'pn-connectionString',
             detail: 'Defines the connection string to use',
-            documentation: `Example: 
--- pn-connectionString postgres://dbt_user:pn-password@localhost:5432/dbt_example`
-        },
+            documentation: `Examples: 
+
+[postgres connection](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS)
+-- pn-connectionString postgres://dbt_user:pn-password@localhost:5432/dbt_example
+
+[oracle connection](https://www.connectionstrings.com/oracle-data-provider-for-net-odp-net/using-the-easy-connect-naming-method-aka-ez-connect/)
+[oracle connection additional](https://docs.oracle.com/cd/E11882_01/appdev.112/e10646/oci01int.htm#LNOCI16167)
+-- pn-connectionString ORACLE_USER/pn-password@localhost:1521/oradev
+
+[sql server connection](https://learn.microsoft.com/en-us/dotnet/api/system.data.sqlclient.sqlconnection.connectionstring?view=netframework-4.8.1)
+-- pn-connectionString Server=localhost,1433;Database=database;User Id=username;Password=password;Encrypt=true
+
+[sqlite connection](https://www.npmjs.com/package/sqlite#opening-the-database)
+-- pn-connectionString pn-filePath/sqlite-example.db
+-- pn-connectionString :memory:
+
+[duckdb connection]()
+-- pn-connectionString duckdb
+`
+},
         {
             label: 'pn-password',
             insertText: 'pn-password',
@@ -124,6 +141,7 @@ Example:
 * oracle
 * duckdb
 * sqlite
+* sqlserver
 
 Example:
 -- pn-sqlDialect postgres`

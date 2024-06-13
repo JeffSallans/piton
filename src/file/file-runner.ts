@@ -10,6 +10,7 @@ import postgres from '../sql-dialects/postgres';
 import duckdb from '../sql-dialects/duckdb';
 import oracle from '../sql-dialects/oracle';
 import sqlite from '../sql-dialects/sqlite';
+import sqlServer from "../sql-dialects/sql-server";
 
 import { PitonFilePartResult } from "../models/PitonFilePartResult";
 import { PitonFileResult } from "../models/PitonFileResult";
@@ -43,11 +44,14 @@ export async function runFile(file: PitonFile): Promise<PitonFileResult> {
     if (file.sqlDialect === 'postgres') {
         sql = postgres;
     }
-    else if (file.sqlDialect === 'oracledb') {
+    else if (file.sqlDialect === 'oracle') {
         sql = oracle;
     }
     else if (file.sqlDialect === 'sqlite') {
         sql = sqlite;
+    }
+    else if (file.sqlDialect === 'sqlserver') {
+        sql = sqlServer;
     }
 
     try {

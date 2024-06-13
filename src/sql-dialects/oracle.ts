@@ -1,14 +1,29 @@
 import * as oracledb from 'oracledb';
 import { SqlDialectAdapter } from '../models/SqlDialectAdapter';
+import { OutputChannelLogger } from '../logging-and-debugging/OutputChannelLogger';
 
 //oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 let connection: any;
 
 const toExport: SqlDialectAdapter = {
-    setupConnection: async function(connectionString) {
+    setupConnection: async function(fullConnectionString) {
+        const passWordRegex = /^(.*?[^\"])\/(.*?[^\"])\@(.*?)$/g;
+        const regexResult = passWordRegex.exec(fullConnectionString) || ['', undefined, undefined, undefined];
+        const username = regexResult[1];
+        const password = regexResult[2];
+        const connectString = regexResult[3];
+
+        OutputChannelLogger.log(`===== Connection Details =====
+    fullConnectionString: ${fullConnectionString.replace(password || 'password', '****')}
+    username: ${username}
+    connectString: ${connectString}
+`);
+
         connection = await oracledb.getConnection({
-            connectString: connectionString,
+            username,
+            password,
+            connectString,
         });
         return connection;
     },
