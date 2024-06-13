@@ -2,6 +2,15 @@
 
 Feature and bugfixes for each release.
 
+### 0.11.5
+
+* Fixed oracle sql dialect option and connection string issues
+* Added Sql Server support
+
+### 0.11.3
+
+* Fixed summary page showing more files when it shouldn't
+
 ### 0.11.0
 
 * Added file minimap report
