@@ -2,6 +2,10 @@
 
 Feature and bugfixes for each release.
 
+### 0.11.6
+
+* Improve example and documentation for faster ramp-up
+
 ### 0.11.5
 
 * Fixed oracle sql dialect option and connection string issues

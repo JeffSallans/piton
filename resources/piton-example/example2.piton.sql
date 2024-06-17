@@ -1,5 +1,6 @@
 -- pn-connectionString postgres://postgres:pn-password@localhost:5432/public
 -- pn-sqlDialect postgres
+-- pn-skip
 
 -- pn-count
 -- test

@@ -2,6 +2,10 @@
 
 Piton is a portable SQL testing VS Code Extension. The goal is to be an easy to use SQL tool for Quality Engineers.
 
+## Screenshot
+
+![screenshot](./resources/piton-screenshot.png)
+
 ## Installation
 
 1. Download and install Piton from the [marketplace](https://marketplace.visualstudio.com/items?itemName=JeffSallans.piton)
@@ -14,6 +18,12 @@ Piton is a portable SQL testing VS Code Extension. The goal is to be an easy to 
 
 1. Run a file and look at Piton output for the results
 
+1. Click on the "has valid characters" in the piton explorer view
+
+1. Click the approve button next to "has valid characters" and the check will be set to pass
+
+1. 🎉 Congrats! You got the first file passing!
+
 1. Optional - Install SQL Parser from the [marketplace](https://marketplace.visualstudio.com/items?itemName=mtxr.sqltools)
 
 1. Optional - Install CSV Viewer from the [marketplace](https://marketplace.visualstudio.com/items?itemName=janisdd.vscode-edit-csv)
@@ -25,19 +35,25 @@ Piton is a portable SQL testing VS Code Extension. The goal is to be an easy to 
 ## Example
 
 ```SQL
--- pn-connectionString duckdb
--- pn-sqlDialect duckdb
+-- pn-connectionString pn-filePath/sqlite-example.db
+-- pn-sqlDialect sqlite
 
 -- pn-count
-select * -- Explaination
-from public.piton_test
--- WHERE
+select *
+from Studio_Ghibli
 
 -- pn-check
--- pn-id-col id
+-- pn-name has valid characters
+-- pn-id-col Name
 select *
-from public.piton_test
-where name is null or name = ''
+from Studio_Ghibli
+where Name like '%ä%'
+
+-- pn-check
+-- pn-expect snapshot
+-- pn-id-col Name
+select *
+from Studio_Ghibli
 ```
 
 ## Why Another Testing Library?
@@ -50,6 +66,7 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 * [duckdb](https://www.npmjs.com/package/duckdb)
 * [sqlite](https://www.npmjs.com/package/sqlite)
 * [oracle](https://www.npmjs.com/package/oracledb)
+* [sql server](https://www.npmjs.com/package/mssql)
 
 ## Architecture
 
@@ -68,6 +85,10 @@ There are more formal SQL testing frameworks that requires a lot of developer se
 ## Release Notes
 
 Feature and bugfixes for each release.
+
+### 0.11.6
+
+* Improve example and documentation for faster ramp-up
 
 ### 0.11.5
 

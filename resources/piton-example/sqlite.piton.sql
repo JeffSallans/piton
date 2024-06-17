@@ -6,6 +6,7 @@ select *
 from Studio_Ghibli
 
 -- pn-check
+-- pn-name has valid characters
 -- pn-id-col Name
 select *
 from Studio_Ghibli
